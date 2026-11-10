@@ -125,11 +125,11 @@ def _cartao(encomenda: dict) -> None:
                 ),
             )
         with col_editar:
-            if st.button("✏️ Editar", key=f"editar_{ident}"):
+            if st.button("Editar", key=f"editar_{ident}", type="tertiary"):
                 st.session_state["encomenda_edicao"] = encomenda
                 st.rerun()
         with col_apagar:
-            if st.button("🗑️ Apagar", key=f"apagar_{ident}"):
+            if st.button("Apagar", key=f"apagar_{ident}", type="tertiary"):
                 st.session_state["encomenda_apagar"] = encomenda
                 st.rerun()
 

@@ -18,8 +18,8 @@ _CSS = """
         padding-bottom: 4rem;
         max-width: 1020px;
     }
-    header[data-testid="stHeader"] { background: transparent; }
-    #MainMenu, footer { visibility: hidden; }
+    header[data-testid="stHeader"] { display: none !important; }
+    #MainMenu, footer { display: none !important; }
 
     /* Cabeçalho da aplicação */
     .app-header {
@@ -139,6 +139,41 @@ _CSS = """
     .stFormSubmitButton > button { width: 100%; padding: .55rem 1rem; font-weight: 700; }
     .stTabs [data-baseweb="tab-list"] { gap: .2rem; flex-wrap: wrap; }
     .stTabs [data-baseweb="tab"] { padding: .45rem .8rem; }
+
+    /* Ações discretas nos cartões, sem moldura */
+    [class*="st-key-editar_"] button,
+    [class*="st-key-apagar_"] button {
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #6b4a3b !important;
+        font-size: .8rem !important;
+        font-weight: 500 !important;
+        min-height: 1.5rem !important;
+        padding: .05rem .3rem !important;
+        width: auto !important;
+    }
+    [class*="st-key-editar_"] button:hover,
+    [class*="st-key-apagar_"] button:hover {
+        background: #f7ece2 !important;
+        color: var(--vinho) !important;
+    }
+    [class*="st-key-apagar_"] button:hover { color: #a8243a !important; }
+
+    /* Ligação ao Supabase: ícone pequeno e discreto */
+    [class*="st-key-testar_ligacao"] button {
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #8a6a5a !important;
+        min-height: 1.6rem !important;
+        padding: .1rem .35rem !important;
+        opacity: .6;
+    }
+    [class*="st-key-testar_ligacao"] button:hover {
+        opacity: 1;
+        background: #f7ece2 !important;
+    }
 
     @media (max-width: 700px) {
         div[data-testid="stMainBlockContainer"] {

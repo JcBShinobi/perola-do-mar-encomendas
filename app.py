@@ -99,7 +99,13 @@ def main() -> None:
     ui.inject_css()
     _verificar_ligacao()
 
-    if st.button("Testar ligação", key="testar_ligacao"):
+    if st.button(
+        " ",
+        key="testar_ligacao",
+        type="tertiary",
+        icon=":material/wifi:",
+        help="Testar ligação ao Supabase",
+    ):
         try:
             db.verificar_ligacao()
             st.toast("Ligação ao Supabase a funcionar.")
