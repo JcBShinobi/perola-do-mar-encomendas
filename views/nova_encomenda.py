@@ -87,12 +87,6 @@ def _guardar(
 
 
 def render() -> None:
-    st.subheader("🎄 Nova encomenda")
-    st.caption(
-        "Preencha os dados e entregue ao cliente o número gerado. "
-        "Escreva um produto por linha para a lista de produção somar corretamente."
-    )
-
     _mostrar_ultima_encomenda()
 
     versao = st.session_state.get("form_versao", 0)

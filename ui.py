@@ -1,19 +1,7 @@
 """Componentes visuais partilhados: CSS, cabeçalho, badges e mensagens."""
 from __future__ import annotations
 
-import html
-from datetime import date
-
 import streamlit as st
-
-from utils import formatar_data_extenso
-
-ICONES_ESTADO = {
-    "Pendente": "🟡",
-    "Em Produção": "🟠",
-    "Pronta": "🟢",
-    "Entregue": "⚫",
-}
 
 _CSS = """
 <style>
@@ -58,7 +46,6 @@ _CSS = """
         color: var(--creme);
         padding: 0;
     }
-    .app-header .sub { font-size: .88rem; opacity: .85; }
     .app-header .pinheiro {
         position: absolute;
         right: 1.1rem;
@@ -108,10 +95,6 @@ _CSS = """
         white-space: nowrap;
         margin: 0 .2rem .25rem 0;
     }
-    .b-pendente { background: #fff3cd; color: #7a5b00; }
-    .b-producao { background: #ffe0c7; color: #8a4500; }
-    .b-pronta   { background: #d7f2e0; color: #155c36; }
-    .b-entregue { background: #e6e2dd; color: #4a423c; }
     .b-pago     { background: #d7f2e0; color: #155c36; }
     .b-porpagar { background: #fde2e4; color: #8c1d2f; }
 
@@ -143,45 +126,6 @@ _CSS = """
     .nd-info { font-size: 1.02rem; opacity: .95; }
     .nd-hint { margin-top: .55rem; font-size: .88rem; color: #f3d98b; }
 
-    /* Lista de produção (ecrã da cozinha) */
-    .bake-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 1.16rem;
-        margin: .3rem 0 1rem;
-    }
-    .bake-table td {
-        padding: .58rem .7rem;
-        border-bottom: 1px solid #eadfd3;
-        vertical-align: top;
-        line-height: 1.35;
-    }
-    .bake-table tr:nth-child(odd) { background: #fffaf4; }
-    .bake-table td.qtd {
-        width: 5.2rem;
-        font-weight: 800;
-        color: var(--vinho);
-        white-space: nowrap;
-        font-variant-numeric: tabular-nums;
-    }
-
-    /* Detalhe por encomenda */
-    .detalhe-ordem {
-        border-left: 3px solid rgba(140, 29, 47, .25);
-        padding: .15rem 0 .35rem .75rem;
-        margin-bottom: .7rem;
-        font-size: .94rem;
-        line-height: 1.5;
-    }
-    .detalhe-ordem .linha-topo {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .5rem;
-        align-items: baseline;
-        margin-bottom: .1rem;
-    }
-    .detalhe-ordem .hora { color: var(--vinho); font-size: .85rem; font-weight: 600; }
-
     /* Métricas */
     div[data-testid="stMetric"] {
         background: #fffaf4;
@@ -206,9 +150,6 @@ _CSS = """
         .app-header h1 { font-size: 1.5rem; }
         .app-header .pinheiro { font-size: 2.4rem; right: .7rem; opacity: .55; }
         .nd-valor { font-size: 3.1rem; }
-        .bake-table { font-size: 1.07rem; }
-        .bake-table td { padding: .5rem .45rem; }
-        .bake-table td.qtd { width: 4.2rem; }
         .stButton > button { width: 100%; }
 
         /* Empilha as colunas para leitura confortável no telemóvel */
@@ -229,35 +170,17 @@ def inject_css() -> None:
 
 
 def cabecalho() -> None:
-    """Cabeçalho com a marca e a data de hoje."""
+    """Cabeçalho com a marca da padaria."""
     st.markdown(
-        f"""
+        """
         <div class="app-header">
             <div class="marca">Pérola do Mar · Padaria &amp; Cafetaria</div>
             <h1>Encomendas de Natal 🎄</h1>
-            <div class="sub">Hoje é {html.escape(formatar_data_extenso(date.today()))}</div>
             <div class="pinheiro">🎄</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-
-
-def rotulo_estado(estado: str) -> str:
-    """Ex.: '🟡 Pendente' (usado nos selectboxes)."""
-    return f"{ICONES_ESTADO.get(estado, '•')} {estado}"
-
-
-def badge_estado(estado: str | None) -> str:
-    valor = estado or "Pendente"
-    classes = {
-        "Pendente": "b-pendente",
-        "Em Produção": "b-producao",
-        "Pronta": "b-pronta",
-        "Entregue": "b-entregue",
-    }
-    classe = classes.get(valor, "b-pendente")
-    return f"<span class='badge {classe}'>{html.escape(rotulo_estado(valor))}</span>"
 
 
 def badge_pagamento(estado: str | None) -> str:

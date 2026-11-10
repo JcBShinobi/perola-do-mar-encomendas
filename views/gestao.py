@@ -20,15 +20,12 @@ TAMANHO_PAGINA = 20
 
 def _filtrar(
     encomendas: list[dict],
-    estado: str,
     pesquisa: str,
 ) -> list[dict]:
     termo = pesquisa.strip().lower().lstrip("#")
     resultado: list[dict] = []
 
     for encomenda in encomendas:
-        if estado != "Todos" and encomenda.get("estado_encomenda") != estado:
-            continue
         if termo:
             nome = (encomenda.get("nome_cliente") or "").lower()
             numero = str(encomenda.get("numero_encomenda") or "")
@@ -45,26 +42,6 @@ def _chave_ordem(encomenda: dict) -> tuple[str, str, int]:
         str(encomenda.get("hora_levantamento") or "99:99:99"),
         int(encomenda.get("numero_encomenda") or 0),
     )
-
-
-def _mudar_estado(
-    encomenda_id: int,
-    numero: object,
-    estado_atual: str,
-    chave: str,
-) -> None:
-    novo = st.session_state.get(chave)
-    if novo == estado_atual or novo is None:
-        return
-    try:
-        db.atualizar_estado_encomenda(encomenda_id, novo)
-        ui.flash("sucesso", f"Encomenda {formatar_numero(numero)} atualizada para {novo}.")
-    except db.ErroBaseDados as exc:
-        st.session_state[chave] = estado_atual
-        ui.flash(
-            "erro",
-            f"Não foi possível atualizar a encomenda {formatar_numero(numero)}. {exc}",
-        )
 
 
 def _mudar_pagamento(
@@ -94,7 +71,6 @@ def _mudar_pagamento(
 def _cartao(encomenda: dict) -> None:
     ident = int(encomenda.get("id"))
     numero = formatar_numero(encomenda.get("numero_encomenda"))
-    estado = encomenda.get("estado_encomenda") or "Pendente"
     pago = (encomenda.get("estado_pagamento") or "Por Pagar") == "Pago"
 
     with st.container(border=True):
@@ -116,7 +92,7 @@ def _cartao(encomenda: dict) -> None:
             st.caption(" · ".join(detalhes))
         with topo_direita:
             st.markdown(
-                ui.badge_estado(estado) + ui.badge_pagamento(encomenda.get("estado_pagamento")),
+                ui.badge_pagamento(encomenda.get("estado_pagamento")),
                 unsafe_allow_html=True,
             )
 
@@ -136,34 +112,18 @@ def _cartao(encomenda: dict) -> None:
                 unsafe_allow_html=True,
             )
 
-        col_estado, col_pago = st.columns([3, 2])
-        indice = db.ESTADOS_ENCOMENDA.index(estado) if estado in db.ESTADOS_ENCOMENDA else 0
-        with col_estado:
-            st.selectbox(
-                "Estado da encomenda",
-                db.ESTADOS_ENCOMENDA,
-                index=indice,
-                format_func=ui.rotulo_estado,
-                key=f"estado_{ident}_{indice}",
-                on_change=_mudar_estado,
-                args=(ident, encomenda.get("numero_encomenda"), estado, f"estado_{ident}_{indice}"),
-            )
-        with col_pago:
-            st.toggle(
-                "Pagamento recebido",
-                value=pago,
-                key=f"pago_{ident}_{int(pago)}",
-                on_change=_mudar_pagamento,
-                args=(ident, encomenda.get("numero_encomenda"), pago, f"pago_{ident}_{int(pago)}"),
-            )
+        st.toggle(
+            "Pagamento recebido",
+            value=pago,
+            key=f"pago_{ident}_{int(pago)}",
+            on_change=_mudar_pagamento,
+            args=(ident, encomenda.get("numero_encomenda"), pago, f"pago_{ident}_{int(pago)}"),
+        )
 
 
 def render() -> None:
-    st.subheader("📋 Consulta e gestão")
-    st.caption("Filtre por dia, pesquise pelo número/nome e atualize o estado de cada encomenda.")
-
     hoje = date.today()
-    filtro_data, filtro_estado, filtro_pesquisa = st.columns([1.2, 1, 1.4])
+    filtro_data, filtro_pesquisa = st.columns([1, 1.4])
 
     dia: date | None = None
     with filtro_data:
@@ -179,16 +139,6 @@ def render() -> None:
                 format="DD/MM/YYYY",
                 key="gestao_dia",
             )
-
-    with filtro_estado:
-        estado = st.selectbox(
-            "Estado",
-            ("Todos",) + db.ESTADOS_ENCOMENDA,
-            format_func=lambda valor: "Todos os estados"
-            if valor == "Todos"
-            else ui.rotulo_estado(valor),
-            key="gestao_estado",
-        )
 
     with filtro_pesquisa:
         pesquisa = st.text_input(
@@ -214,9 +164,9 @@ def render() -> None:
         st.error(f"Não foi possível carregar as encomendas. {exc}")
         return
 
-    filtradas = sorted(_filtrar(encomendas, estado, pesquisa), key=_chave_ordem)
+    filtradas = sorted(_filtrar(encomendas, pesquisa), key=_chave_ordem)
 
-    assinatura = (modo, str(dia), estado, pesquisa)
+    assinatura = (modo, str(dia), pesquisa)
     if st.session_state.get("gestao_assinatura") != assinatura:
         st.session_state["gestao_assinatura"] = assinatura
         st.session_state["gestao_limite"] = TAMANHO_PAGINA

@@ -36,7 +36,7 @@ import streamlit as st
 
 import db
 import ui
-from views import gestao, nova_encomenda, producao
+from views import gestao, nova_encomenda
 
 st.set_page_config(
     page_title="Pérola do Mar · Encomendas de Natal",
@@ -110,10 +110,6 @@ def _barra_lateral() -> None:
             except db.ErroBaseDados as exc:
                 st.error(str(exc))
         st.divider()
-        st.markdown("**Estados da encomenda**")
-        for estado in db.ESTADOS_ENCOMENDA:
-            st.caption(ui.rotulo_estado(estado))
-        st.divider()
         st.caption(
             "Os dados ficam guardados no Supabase, por isso a equipa pode consultar "
             "e atualizar encomendas a partir de qualquer dispositivo."
@@ -127,15 +123,11 @@ def main() -> None:
     ui.mostrar_flash()
     _barra_lateral()
 
-    aba_nova, aba_gestao, aba_producao = st.tabs(
-        ["🎄 Nova encomenda", "📋 Consulta e gestão", "🥖 Produção"]
-    )
+    aba_nova, aba_gestao = st.tabs(["🎄 Nova encomenda", "📋 Consulta e gestão"])
     with aba_nova:
         nova_encomenda.render()
     with aba_gestao:
         gestao.render()
-    with aba_producao:
-        producao.render()
 
 
 main()

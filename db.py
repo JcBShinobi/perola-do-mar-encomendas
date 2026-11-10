@@ -12,7 +12,6 @@ import streamlit as st
 from supabase import Client, create_client
 
 TABELA = "encomendas"
-ESTADOS_ENCOMENDA: tuple[str, ...] = ("Pendente", "Em Produção", "Pronta", "Entregue")
 ESTADOS_PAGAMENTO: tuple[str, ...] = ("Por Pagar", "Pago")
 LIMITE_CONSULTA = 1000
 
@@ -146,7 +145,6 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
         "produtos": produtos,
         "data_levantamento": dia.isoformat(),
         "hora_levantamento": hora.strftime("%H:%M:%S") if isinstance(hora, time) else None,
-        "estado_encomenda": "Pendente",
         "estado_pagamento": pagamento,
         "observacoes": (dados.get("observacoes") or "").strip() or None,
         "funcionario": (dados.get("funcionario") or "").strip() or None,
@@ -192,13 +190,6 @@ def listar_encomendas(
         raise ErroBaseDados(_traduzir(exc)) from exc
 
     return list(resposta.data or [])
-
-
-def atualizar_estado_encomenda(encomenda_id: int, novo_estado: str) -> None:
-    """Atualiza o estado de produção de uma encomenda."""
-    if novo_estado not in ESTADOS_ENCOMENDA:
-        raise ErroBaseDados(f"Estado inválido: {novo_estado}.")
-    _atualizar(encomenda_id, {"estado_encomenda": novo_estado})
 
 
 def atualizar_estado_pagamento(encomenda_id: int, pago: bool) -> None:

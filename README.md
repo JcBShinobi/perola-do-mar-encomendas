@@ -13,24 +13,19 @@ telemóvel como no computador do balcão.
   opcional, pagamento, observações e funcionário. Ao guardar, o ecrã mostra em
   grande destaque o **número gerado** (ex.: `#0042`) para dar ao cliente, e os
   campos ficam limpos para a encomenda seguinte.
-- **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou Todas)
-  e por estado, pesquisa por número ou nome, cartões ordenados por data/hora,
-  alteração do estado de produção (🟡 Pendente → 🟠 Em Produção → 🟢 Pronta →
-  ⚫ Entregue) e interruptor de pagamento (Por Pagar/Pago).
-- **Resumo de produção** — lista agregada dos produtos de um dia, com as
-  quantidades somadas, para a equipa da cozinha. Inclui atalhos para Hoje,
-  Amanhã e 24 de dezembro.
+- **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
+  Todas), pesquisa por número ou nome, cartões ordenados por data/hora e
+  interruptor de pagamento (Por Pagar/Pago).
 
 ## Estrutura
 
 ```
 app.py                      Ponto de entrada (ligação, cabeçalho, abas)
 db.py                       Acesso ao Supabase e tradução de erros
-utils.py                    Formatação e agregação dos produtos
+utils.py                    Formatação de datas, horas e números
 ui.py                       CSS responsivo, badges e mensagens
 views/nova_encomenda.py     Registo de encomendas
-views/gestao.py             Filtros, pesquisa e ações rápidas
-views/producao.py           Bake list agregada por dia
+views/gestao.py             Filtros, pesquisa e pagamento
 schema.sql                  Tabela, sequência, índices e permissões
 .streamlit/config.toml      Tema visual
 .streamlit/secrets.toml.example
@@ -83,9 +78,6 @@ Streamlit e a persistência fica no Supabase.
 
 ## Notas de utilização
 
-- Escreva **um produto por linha** (ex.: `2 bolos-rei`) para que a lista de
-  produção some as quantidades por produto. Linhas sem quantidade contam como
-  1 unidade.
 - O número da encomenda é sequencial e gerado pelo PostgreSQL, por isso não há
   números repetidos mesmo com vários postos a registar ao mesmo tempo.
 - A hora de levantamento é opcional; sem hora, a encomenda aparece no fim do
@@ -98,7 +90,6 @@ Streamlit e a persistência fica no Supabase.
 
 ```bash
 python -m compileall .
-python -c "from utils import agregar_produtos; print(agregar_produtos(['2 bolos-rei', '3 bolos rei']))"
 ```
 
 O projeto inclui ligação tolerante a falhas: erros de configuração, tabela em
