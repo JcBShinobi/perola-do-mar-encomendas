@@ -42,7 +42,6 @@ st.set_page_config(
     page_title="Pérola do Mar · Encomendas de Natal",
     page_icon="🎄",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 
 
@@ -96,32 +95,19 @@ def _verificar_ligacao() -> None:
     st.session_state["ligacao_ok"] = True
 
 
-def _barra_lateral() -> None:
-    with st.sidebar:
-        st.markdown("### 🎄 Pérola do Mar")
-        st.caption("Padaria & Cafetaria · Encomendas de Natal")
-        st.divider()
-        st.markdown("**Ligação à base de dados**")
-        st.caption("🟢 Supabase configurado")
-        if st.button("Testar ligação", key="testar_ligacao"):
-            try:
-                db.verificar_ligacao()
-                st.toast("Ligação ao Supabase a funcionar.")
-            except db.ErroBaseDados as exc:
-                st.error(str(exc))
-        st.divider()
-        st.caption(
-            "Os dados ficam guardados no Supabase, por isso a equipa pode consultar "
-            "e atualizar encomendas a partir de qualquer dispositivo."
-        )
-
-
 def main() -> None:
     ui.inject_css()
-    ui.cabecalho()
     _verificar_ligacao()
+
+    if st.button("Testar ligação", key="testar_ligacao"):
+        try:
+            db.verificar_ligacao()
+            st.toast("Ligação ao Supabase a funcionar.")
+        except db.ErroBaseDados as exc:
+            st.error(str(exc))
+
+    ui.cabecalho()
     ui.mostrar_flash()
-    _barra_lateral()
 
     aba_nova, aba_gestao = st.tabs(["🎄 Nova encomenda", "📋 Consulta e gestão"])
     with aba_nova:

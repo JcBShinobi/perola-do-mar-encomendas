@@ -49,7 +49,6 @@ def _guardar(
     hora: object,
     pagamento: str,
     observacoes: str,
-    funcionario: str,
 ) -> None:
     erros: list[str] = []
     if not nome.strip():
@@ -73,7 +72,6 @@ def _guardar(
                 "hora_levantamento": hora,
                 "estado_pagamento": pagamento,
                 "observacoes": observacoes,
-                "funcionario": funcionario,
             }
         )
     except db.ErroBaseDados as exc:
@@ -138,11 +136,6 @@ def render() -> None:
             height=80,
             placeholder="Ex.: sem frutos secos; embalagem com laço",
         )
-        funcionario = st.text_input(
-            "Funcionário",
-            key=f"nc_funcionario_{versao}",
-            placeholder="Quem anotou a encomenda",
-        )
 
         submetido = st.form_submit_button("✅ Guardar encomenda", type="primary")
 
@@ -155,5 +148,4 @@ def render() -> None:
             hora,
             pagamento,
             observacoes,
-            funcionario,
         )

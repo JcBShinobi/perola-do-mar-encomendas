@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import html
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 
 import streamlit as st
 
@@ -87,8 +87,6 @@ def _cartao(encomenda: dict) -> None:
                 detalhes.append(f"🕒 {hora}")
             if encomenda.get("telefone"):
                 detalhes.append(f"📞 {encomenda['telefone']}")
-            if encomenda.get("funcionario"):
-                detalhes.append(f"👤 {encomenda['funcionario']}")
             st.caption(" · ".join(detalhes))
         with topo_direita:
             st.markdown(
@@ -112,16 +110,173 @@ def _cartao(encomenda: dict) -> None:
                 unsafe_allow_html=True,
             )
 
-        st.toggle(
-            "Pagamento recebido",
-            value=pago,
-            key=f"pago_{ident}_{int(pago)}",
-            on_change=_mudar_pagamento,
-            args=(ident, encomenda.get("numero_encomenda"), pago, f"pago_{ident}_{int(pago)}"),
+        col_pago, col_editar, col_apagar = st.columns([2.2, 1, 1])
+        with col_pago:
+            st.toggle(
+                "Pagamento recebido",
+                value=pago,
+                key=f"pago_{ident}_{int(pago)}",
+                on_change=_mudar_pagamento,
+                args=(
+                    ident,
+                    encomenda.get("numero_encomenda"),
+                    pago,
+                    f"pago_{ident}_{int(pago)}",
+                ),
+            )
+        with col_editar:
+            if st.button("✏️ Editar", key=f"editar_{ident}"):
+                st.session_state["encomenda_edicao"] = encomenda
+                st.rerun()
+        with col_apagar:
+            if st.button("🗑️ Apagar", key=f"apagar_{ident}"):
+                st.session_state["encomenda_apagar"] = encomenda
+                st.rerun()
+
+
+def _data_do_registo(encomenda: dict) -> date:
+    try:
+        return date.fromisoformat(str(encomenda.get("data_levantamento"))[:10])
+    except (TypeError, ValueError):
+        return date.today()
+
+
+def _hora_do_registo(encomenda: dict) -> time | None:
+    valor = encomenda.get("hora_levantamento")
+    if not valor:
+        return None
+    try:
+        return time.fromisoformat(str(valor)[:8])
+    except ValueError:
+        return None
+
+
+def _fechar_edicao() -> None:
+    st.session_state.pop("encomenda_edicao", None)
+
+
+def _fechar_apagar() -> None:
+    st.session_state.pop("encomenda_apagar", None)
+
+
+@st.dialog("Editar encomenda", width="large", on_dismiss=_fechar_edicao)
+def _dialogo_editar(encomenda: dict) -> None:
+    ident = int(encomenda["id"])
+    numero = formatar_numero(encomenda.get("numero_encomenda"))
+    pagamento_atual = encomenda.get("estado_pagamento") or "Por Pagar"
+    indice_pagamento = (
+        db.ESTADOS_PAGAMENTO.index(pagamento_atual)
+        if pagamento_atual in db.ESTADOS_PAGAMENTO
+        else 0
+    )
+
+    st.caption(f"Encomenda {numero} · {encomenda.get('nome_cliente') or '—'}")
+
+    with st.form(f"editar_{ident}"):
+        nome = st.text_input(
+            "Nome do cliente *", value=encomenda.get("nome_cliente") or ""
         )
+        telefone = st.text_input("Telefone", value=encomenda.get("telefone") or "")
+        produtos = st.text_area(
+            "Produtos e quantidades *",
+            value=encomenda.get("produtos") or "",
+            height=120,
+        )
+        dia = st.date_input(
+            "Data de levantamento *",
+            value=_data_do_registo(encomenda),
+            format="DD/MM/YYYY",
+        )
+        hora = st.time_input(
+            "Hora (opcional)",
+            value=_hora_do_registo(encomenda),
+            step=timedelta(minutes=15),
+        )
+        pagamento = st.radio(
+            "Estado do pagamento",
+            db.ESTADOS_PAGAMENTO,
+            index=indice_pagamento,
+            horizontal=True,
+        )
+        observacoes = st.text_area(
+            "Observações", value=encomenda.get("observacoes") or "", height=80
+        )
+        guardar = st.form_submit_button("Guardar alterações", type="primary")
+
+    if guardar:
+        erros: list[str] = []
+        if not nome.strip():
+            erros.append("Indique o nome do cliente.")
+        if not produtos.strip():
+            erros.append("Indique os produtos e as quantidades.")
+        if not isinstance(dia, date):
+            erros.append("Escolha a data de levantamento.")
+        if erros:
+            for erro in erros:
+                st.error(erro)
+            return
+
+        try:
+            db.atualizar_encomenda(
+                ident,
+                {
+                    "nome_cliente": nome,
+                    "telefone": telefone,
+                    "produtos": produtos,
+                    "data_levantamento": dia,
+                    "hora_levantamento": hora,
+                    "estado_pagamento": pagamento,
+                    "observacoes": observacoes,
+                },
+            )
+        except db.ErroBaseDados as exc:
+            st.error(f"Não foi possível atualizar a encomenda. {exc}")
+            return
+
+        st.session_state.pop("encomenda_edicao", None)
+        ui.flash("sucesso", f"Encomenda {numero} atualizada.")
+        st.rerun()
+
+    if st.button("Cancelar"):
+        st.session_state.pop("encomenda_edicao", None)
+        st.rerun()
+
+
+@st.dialog("Apagar encomenda", on_dismiss=_fechar_apagar)
+def _dialogo_apagar(encomenda: dict) -> None:
+    ident = int(encomenda["id"])
+    numero = formatar_numero(encomenda.get("numero_encomenda"))
+    nome = encomenda.get("nome_cliente") or "—"
+
+    st.warning(
+        f"Tens a certeza de que queres apagar a encomenda {numero} de {nome}? "
+        "Esta ação é permanente e não pode ser desfeita."
+    )
+    st.caption("O cliente, os produtos e as observações serão removidos.")
+
+    col_cancelar, col_apagar = st.columns(2)
+    with col_cancelar:
+        if st.button("Cancelar"):
+            st.session_state.pop("encomenda_apagar", None)
+            st.rerun()
+    with col_apagar:
+        if st.button("Apagar definitivamente", type="primary"):
+            try:
+                db.apagar_encomenda(ident)
+            except db.ErroBaseDados as exc:
+                st.error(f"Não foi possível apagar a encomenda. {exc}")
+                return
+            st.session_state.pop("encomenda_apagar", None)
+            ui.flash("sucesso", f"Encomenda {numero} apagada.")
+            st.rerun()
 
 
 def render() -> None:
+    if st.session_state.get("encomenda_edicao"):
+        _dialogo_editar(st.session_state["encomenda_edicao"])
+    if st.session_state.get("encomenda_apagar"):
+        _dialogo_apagar(st.session_state["encomenda_apagar"])
+
     hoje = date.today()
     filtro_data, filtro_pesquisa = st.columns([1, 1.4])
 

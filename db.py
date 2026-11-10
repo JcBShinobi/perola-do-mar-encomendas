@@ -147,7 +147,6 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
         "hora_levantamento": hora.strftime("%H:%M:%S") if isinstance(hora, time) else None,
         "estado_pagamento": pagamento,
         "observacoes": (dados.get("observacoes") or "").strip() or None,
-        "funcionario": (dados.get("funcionario") or "").strip() or None,
     }
 
     cliente = get_client()
@@ -198,6 +197,49 @@ def atualizar_estado_pagamento(encomenda_id: int, pago: bool) -> None:
         encomenda_id,
         {"estado_pagamento": "Pago" if pago else "Por Pagar"},
     )
+
+
+def atualizar_encomenda(encomenda_id: int, dados: dict[str, Any]) -> None:
+    """Atualiza os dados editáveis de uma encomenda existente."""
+    nome = (dados.get("nome_cliente") or "").strip()
+    produtos = (dados.get("produtos") or "").strip()
+    dia = dados.get("data_levantamento")
+
+    if not nome:
+        raise ErroBaseDados("O nome do cliente é obrigatório.")
+    if not produtos:
+        raise ErroBaseDados("Indique os produtos da encomenda.")
+    if not isinstance(dia, date):
+        raise ErroBaseDados("A data de levantamento é obrigatória.")
+
+    hora = dados.get("hora_levantamento")
+    pagamento = dados.get("estado_pagamento") or "Por Pagar"
+    if pagamento not in ESTADOS_PAGAMENTO:
+        pagamento = "Por Pagar"
+
+    _atualizar(
+        encomenda_id,
+        {
+            "nome_cliente": nome,
+            "telefone": (dados.get("telefone") or "").strip() or None,
+            "produtos": produtos,
+            "data_levantamento": dia.isoformat(),
+            "hora_levantamento": hora.strftime("%H:%M:%S")
+            if isinstance(hora, time)
+            else None,
+            "estado_pagamento": pagamento,
+            "observacoes": (dados.get("observacoes") or "").strip() or None,
+        },
+    )
+
+
+def apagar_encomenda(encomenda_id: int) -> None:
+    """Elimina permanentemente uma encomenda."""
+    cliente = get_client()
+    try:
+        cliente.table(TABELA).delete().eq("id", int(encomenda_id)).execute()
+    except Exception as exc:
+        raise ErroBaseDados(_traduzir(exc)) from exc
 
 
 def _atualizar(encomenda_id: int, alteracoes: dict[str, Any]) -> None:

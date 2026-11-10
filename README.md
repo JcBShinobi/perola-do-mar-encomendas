@@ -10,12 +10,13 @@ telemóvel como no computador do balcão.
 ## Funcionalidades
 
 - **Nova encomenda** — formulário com cliente, telefone, produtos, data, hora
-  opcional, pagamento, observações e funcionário. Ao guardar, o ecrã mostra em
-  grande destaque o **número gerado** (ex.: `#0042`) para dar ao cliente, e os
-  campos ficam limpos para a encomenda seguinte.
+  opcional, pagamento e observações. Ao guardar, o ecrã mostra em grande
+  destaque o **número gerado** (ex.: `#0042`) para dar ao cliente, e os campos
+  ficam limpos para a encomenda seguinte.
 - **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
-  Todas), pesquisa por número ou nome, cartões ordenados por data/hora e
-  interruptor de pagamento (Por Pagar/Pago).
+  Todas), pesquisa por número ou nome, cartões ordenados por data/hora,
+  interruptor de pagamento (Por Pagar/Pago), edição dos dados e eliminação
+  com confirmação.
 
 ## Estrutura
 
@@ -82,6 +83,7 @@ Streamlit e a persistência fica no Supabase.
   números repetidos mesmo com vários postos a registar ao mesmo tempo.
 - A hora de levantamento é opcional; sem hora, a encomenda aparece no fim do
   dia na listagem.
+- A eliminação de uma encomenda é permanente e exige confirmação no ecrã.
 - A política RLS incluída no `schema.sql` dá acesso total à chave `anon`, o que
   é adequado a uma app interna cuja chave fica no servidor. Se expuser o
   Supabase a outros clientes, restrinja as políticas com Supabase Auth.
