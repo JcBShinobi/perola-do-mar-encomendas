@@ -5,6 +5,8 @@ consultar e acompanhar encomendas de Natal. Os dados ficam guardados no
 **Supabase (PostgreSQL)** e a interface foi desenhada para funcionar tanto no
 telemóvel como no computador do balcão.
 
+**App publicada:** <https://perola-do-mar-encomendas.streamlit.app>
+
 ## Funcionalidades
 
 - **Nova encomenda** — formulário com cliente, telefone, produtos, data, hora
@@ -40,11 +42,12 @@ schema.sql                  Tabela, sequência, índices e permissões
 2. Abra **SQL Editor → New query**, cole todo o conteúdo de `schema.sql` e
    clique em **Run**. Isto cria a tabela `encomendas`, a sequência do número de
    encomenda, os índices, a política de acesso e as permissões.
-3. Em **Project Settings → API**, copie o **Project URL** e a chave
-   **anon public**.
+3. Em **Project Settings → API Keys**, copie o **Project URL** e uma chave
+   pública: `anon public` (legada) ou `sb_publishable_…`. O `supabase-py`
+   aceita ambas.
 
-> Use apenas a chave `anon public` (nunca a `service_role`) e mantenha-a fora do
-> repositório. A chave vive nos secrets do Streamlit, no servidor.
+> Use apenas uma chave pública (nunca a `secret`/`service_role`) e mantenha-a
+> fora do repositório. A chave vive nos secrets do Streamlit, no servidor.
 
 ## 2. Correr localmente
 
