@@ -8,7 +8,7 @@ import streamlit as st
 
 import db
 import ui
-from utils import formatar_data, formatar_hora, formatar_numero
+from utils import formatar_data, formatar_hora, formatar_numero, link_sms
 
 
 def _mostrar_ultima_encomenda() -> None:
@@ -36,9 +36,28 @@ def _mostrar_ultima_encomenda() -> None:
         unsafe_allow_html=True,
     )
 
-    if st.button("Registar outra encomenda", key="fechar_ultima"):
-        st.session_state.pop("ultima_encomenda", None)
-        st.rerun()
+    link = link_sms(registo)
+    if link:
+        col_mensagem, col_nova = st.columns(2)
+        with col_mensagem:
+            st.link_button(
+                "💬 Enviar mensagem",
+                link,
+                type="primary",
+                width="stretch",
+            )
+        with col_nova:
+            if st.button(
+                "Registar outra encomenda",
+                key="fechar_ultima",
+                width="stretch",
+            ):
+                st.session_state.pop("ultima_encomenda", None)
+                st.rerun()
+    else:
+        if st.button("Registar outra encomenda", key="fechar_ultima"):
+            st.session_state.pop("ultima_encomenda", None)
+            st.rerun()
 
 
 def _guardar(

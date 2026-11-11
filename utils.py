@@ -8,6 +8,7 @@ import re
 import unicodedata
 from datetime import date, datetime, time
 from typing import Iterable
+from urllib.parse import quote
 
 MESES = (
     "janeiro",
@@ -95,6 +96,49 @@ def formatar_numero(valor: object) -> str:
         return f"#{int(valor):04d}"
     except (TypeError, ValueError):
         return "—"
+
+
+def telefone_para_sms(valor: object) -> str:
+    """Normaliza o telefone para um destinatário SMS (com indicativo +351)."""
+    texto = str(valor or "").strip()
+    digitos = re.sub(r"\D", "", texto)
+    if not digitos:
+        return ""
+
+    if texto.startswith("00"):
+        digitos = digitos[2:]
+
+    if len(digitos) == 9:
+        return f"+351{digitos}"
+    if digitos.startswith("351") and len(digitos) >= 12:
+        return f"+{digitos}"
+    if len(digitos) > 9:
+        return f"+{digitos}"
+    return digitos
+
+
+def mensagem_sms(registo: dict) -> str:
+    """Mensagem de confirmação com número, data/hora e funcionário."""
+    numero = formatar_numero(registo.get("numero_encomenda"))
+    data = formatar_data(registo.get("data_levantamento"))
+    hora = formatar_hora(registo.get("hora_levantamento"))
+    quando = f"{data} às {hora}" if hora else f"{data} (hora a combinar)"
+    funcionario = (registo.get("funcionario") or "").strip() or "não indicado"
+    nome = (registo.get("nome_cliente") or "").strip()
+    saudacao = f"Olá {nome}. " if nome else ""
+    return (
+        f"{saudacao}A sua encomenda {numero} está registada para {quando}. "
+        f"Funcionário: {funcionario}. — Pérola do Mar"
+    )
+
+
+def link_sms(registo: dict) -> str | None:
+    """Link que abre a app de SMS com a mensagem já preenchida."""
+    telefone = telefone_para_sms(registo.get("telefone"))
+    if not telefone:
+        return None
+    # ?&body= é a forma que funciona tanto no Android como no iPhone.
+    return f"sms:{telefone}?&body={quote(mensagem_sms(registo), safe='')}"
 
 
 def formatar_quantidade(valor: float) -> str:

@@ -13,6 +13,7 @@ from utils import (
     formatar_data,
     formatar_hora,
     formatar_numero,
+    link_sms,
     proximo_24_dezembro,
 )
 
@@ -123,7 +124,8 @@ def _cartao(encomenda: dict) -> None:
                 unsafe_allow_html=True,
             )
 
-        col_pago, col_editar, col_apagar = st.columns([2.2, 1, 1])
+        link = link_sms(encomenda)
+        col_pago, col_mensagem, col_editar, col_apagar = st.columns([2.2, 1.3, 1, 1])
         with col_pago:
             st.toggle(
                 "Pagamento recebido",
@@ -137,6 +139,9 @@ def _cartao(encomenda: dict) -> None:
                     f"pago_{ident}_{int(pago)}",
                 ),
             )
+        with col_mensagem:
+            if link:
+                st.link_button("💬 Enviar mensagem", link)
         with col_editar:
             if st.button("Editar", key=f"editar_{ident}", type="tertiary"):
                 st.session_state["encomenda_edicao"] = encomenda

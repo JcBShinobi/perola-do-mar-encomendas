@@ -17,6 +17,9 @@ telemóvel como no computador do balcão.
   Todas), pesquisa por número, nome ou telefone, cartões ordenados por
   data/hora, interruptor de pagamento (Por Pagar/Pago), edição dos dados e
   eliminação com confirmação.
+- **Enviar mensagem** — no painel de confirmação e nos cartões da consulta,
+  abre a app de SMS do telemóvel com uma mensagem pré-preenchida com o número
+  da encomenda, a data/hora e o funcionário.
 - **Encomendas / A separar / Separado** — três filas de trabalho com
   contador, ordenadas da data mais próxima para a mais distante. **Encomendas**
   mostra as que ainda estão **Não separado**; ao passarem para **A separar**
