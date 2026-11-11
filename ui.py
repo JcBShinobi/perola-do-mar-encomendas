@@ -164,30 +164,207 @@ _CSS = """
     }
     div[data-testid="stMetricValue"] { color: var(--vinho); }
 
-    .stButton > button, .stDownloadButton > button { border-radius: 10px; font-weight: 600; }
-    .stFormSubmitButton > button { width: 100%; padding: .55rem 1rem; font-weight: 700; }
+    /* Botões */
+    .stButton > button,
+    .stDownloadButton > button {
+        min-height: 2.45rem;
+        padding: .48rem 1rem;
+        border: 1px solid rgba(140, 29, 47, .20);
+        border-radius: 12px;
+        background: linear-gradient(180deg, #fffdfa 0%, #fbf0e2 100%);
+        color: #6b2a33;
+        font-size: .92rem;
+        font-weight: 650;
+        letter-spacing: .005em;
+        line-height: 1.2;
+        box-shadow: 0 2px 6px rgba(43, 27, 20, .05);
+        -webkit-tap-highlight-color: transparent;
+        transition: transform .16s ease, box-shadow .16s ease,
+                    background .16s ease, border-color .16s ease, color .16s ease;
+    }
+    .stButton > button:hover,
+    .stDownloadButton > button:hover {
+        border-color: rgba(201, 162, 39, .70);
+        background: #fff8ef;
+        color: var(--vinho);
+        box-shadow: 0 6px 14px rgba(85, 11, 25, .10);
+        transform: translateY(-1px);
+    }
+    .stButton > button:active,
+    .stDownloadButton > button:active { transform: translateY(0); }
+    .stButton > button p,
+    .stDownloadButton > button p { margin: 0; color: inherit; }
+
+    /* Ação principal: vinho profundo com filete dourado */
+    .stButton > button[kind="primary"],
+    .stDownloadButton > button[kind="primary"] {
+        border-color: rgba(232, 197, 106, .60);
+        background: linear-gradient(135deg, #a8243a 0%, #8c1d2f 55%, #6f1020 100%);
+        color: var(--creme) !important;
+        box-shadow: 0 5px 14px rgba(85, 11, 25, .20),
+                    inset 0 1px 0 rgba(255, 255, 255, .16);
+    }
+    .stButton > button[kind="primary"] p,
+    .stDownloadButton > button[kind="primary"] p { color: inherit !important; }
+    .stButton > button[kind="primary"]:hover,
+    .stDownloadButton > button[kind="primary"]:hover {
+        border-color: rgba(245, 214, 132, .90);
+        background: linear-gradient(135deg, #b32a43 0%, #972037 55%, #7a1327 100%);
+        color: #fffdf7 !important;
+        box-shadow: 0 8px 20px rgba(85, 11, 25, .27),
+                    inset 0 1px 0 rgba(255, 255, 255, .18);
+    }
+
+    /* Ações terciárias/discretas */
+    .stButton > button[kind="tertiary"] {
+        min-height: 2rem;
+        padding: .3rem .6rem;
+        border-color: transparent;
+        background: transparent;
+        color: #7a5a49;
+        box-shadow: none;
+    }
+    .stButton > button[kind="tertiary"]:hover {
+        border-color: rgba(201, 162, 39, .35);
+        background: #fff8ef;
+        color: var(--vinho);
+        box-shadow: 0 3px 8px rgba(43, 27, 20, .06);
+        transform: none;
+    }
+
+    /* Botão de link (SMS) */
+    .stLinkButton > a,
+    .stLinkButton a,
+    div[data-testid="stLinkButton"] a,
+    a[data-testid^="stBaseLinkButton"] {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 2.45rem;
+        padding: .48rem 1rem;
+        border: 1px solid rgba(31, 92, 67, .42);
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2b7255 0%, #1f5c43 60%, #174a35 100%);
+        color: var(--creme) !important;
+        font-size: .92rem;
+        font-weight: 700;
+        line-height: 1.2;
+        text-decoration: none !important;
+        box-shadow: 0 5px 14px rgba(20, 65, 47, .18),
+                    inset 0 1px 0 rgba(255, 255, 255, .14);
+        -webkit-tap-highlight-color: transparent;
+        transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .stLinkButton a p { margin: 0; color: inherit !important; }
+    .stLinkButton a:hover,
+    div[data-testid="stLinkButton"] a:hover,
+    a[data-testid^="stBaseLinkButton"]:hover {
+        background: linear-gradient(135deg, #358664 0%, #276b4f 60%, #1c563e 100%);
+        box-shadow: 0 8px 18px rgba(20, 65, 47, .25),
+                    inset 0 1px 0 rgba(255, 255, 255, .18);
+        transform: translateY(-1px);
+    }
+
+    /* Submissão de formulários */
+    .stFormSubmitButton > button,
+    button[kind="primaryFormSubmit"] {
+        width: 100%;
+        min-height: 2.8rem;
+        padding: .65rem 1.2rem;
+        border: 1px solid rgba(232, 197, 106, .60);
+        border-radius: 12px;
+        background: linear-gradient(135deg, #a8243a 0%, #8c1d2f 55%, #6f1020 100%);
+        color: var(--creme) !important;
+        font-size: .96rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+        line-height: 1.2;
+        box-shadow: 0 5px 14px rgba(85, 11, 25, .20),
+                    inset 0 1px 0 rgba(255, 255, 255, .16);
+        transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .stFormSubmitButton > button p,
+    button[kind="primaryFormSubmit"] p { margin: 0; color: inherit !important; }
+    .stFormSubmitButton > button:hover,
+    button[kind="primaryFormSubmit"]:hover {
+        border-color: rgba(245, 214, 132, .90);
+        background: linear-gradient(135deg, #b32a43 0%, #972037 55%, #7a1327 100%);
+        box-shadow: 0 8px 20px rgba(85, 11, 25, .27),
+                    inset 0 1px 0 rgba(255, 255, 255, .18);
+        transform: translateY(-1px);
+    }
+    .stFormSubmitButton > button:active,
+    button[kind="primaryFormSubmit"]:active { transform: translateY(0); }
+
+    .stButton > button:disabled,
+    .stFormSubmitButton > button:disabled,
+    .stLinkButton a[aria-disabled="true"] {
+        opacity: .52;
+        box-shadow: none;
+        transform: none;
+        cursor: not-allowed;
+    }
+    .stButton > button:focus-visible,
+    .stDownloadButton > button:focus-visible,
+    .stFormSubmitButton > button:focus-visible,
+    .stLinkButton a:focus-visible {
+        outline: 3px solid rgba(201, 162, 39, .55);
+        outline-offset: 2px;
+    }
+
     .stTabs [data-baseweb="tab-list"] { gap: .2rem; flex-wrap: wrap; }
     .stTabs [data-baseweb="tab"] { padding: .45rem .8rem; }
 
-    /* Ações discretas nos cartões, sem moldura */
+    /* Ações compactas dos cartões: pequenas “chips” com contorno suave */
     [class*="st-key-editar_"] button,
     [class*="st-key-apagar_"] button {
-        border: 0 !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        color: #6b4a3b !important;
-        font-size: .8rem !important;
-        font-weight: 500 !important;
-        min-height: 1.5rem !important;
-        padding: .05rem .3rem !important;
         width: auto !important;
+        min-height: 1.9rem !important;
+        padding: .12rem .62rem !important;
+        border: 1px solid rgba(140, 29, 47, .14) !important;
+        border-radius: 999px !important;
+        background: #fffdfa !important;
+        color: #6b4a3b !important;
+        font-size: .74rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(43, 27, 20, .04) !important;
+        transition: transform .16s ease, background .16s ease,
+                    border-color .16s ease, color .16s ease !important;
     }
+    [class*="st-key-editar_"] button p,
+    [class*="st-key-apagar_"] button p { margin: 0; }
     [class*="st-key-editar_"] button:hover,
     [class*="st-key-apagar_"] button:hover {
-        background: #f7ece2 !important;
+        border-color: rgba(201, 162, 39, .65) !important;
+        background: #fff8ef !important;
         color: var(--vinho) !important;
+        transform: translateY(-1px);
     }
-    [class*="st-key-apagar_"] button:hover { color: #a8243a !important; }
+    [class*="st-key-apagar_"] button:hover {
+        border-color: rgba(168, 36, 58, .35) !important;
+        background: #fdf1f1 !important;
+        color: #a8243a !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .stButton > button,
+        .stDownloadButton > button,
+        .stLinkButton a,
+        .stFormSubmitButton > button,
+        [class*="st-key-editar_"] button,
+        [class*="st-key-apagar_"] button {
+            transition: none !important;
+        }
+        .stButton > button:hover,
+        .stDownloadButton > button:hover,
+        .stLinkButton a:hover,
+        .stFormSubmitButton > button:hover,
+        [class*="st-key-editar_"] button:hover,
+        [class*="st-key-apagar_"] button:hover { transform: none; }
+    }
 
     /* Ligação ao Supabase: ícone pequeno e discreto */
     [class*="st-key-testar_ligacao"] button {
