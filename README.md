@@ -59,7 +59,7 @@ schema.sql                  Tabela, sequência, índices e permissões
 
 ## 2. Correr localmente
 
-Requer Python 3.10 ou superior.
+Requer Python 3.10 ou superior e Streamlit 1.55 ou superior.
 
 ```bash
 python -m venv .venv
