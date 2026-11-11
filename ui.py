@@ -394,6 +394,12 @@ _CSS = """
         .nd-valor { font-size: 3.1rem; }
 
         /* Alvos de toque confortáveis no telemóvel */
+        .stButton,
+        .stDownloadButton,
+        .stLinkButton,
+        .stFormSubmitButton { width: 100%; }
+        [class*="st-key-testar_ligacao"] { width: auto !important; }
+
         .stButton > button,
         .stDownloadButton > button {
             width: 100%;
