@@ -14,13 +14,14 @@ telemóvel como no computador do balcão.
   guardar, o ecrã mostra em grande destaque o **número gerado** (ex.: `#0042`)
   para dar ao cliente, e os campos ficam limpos para a encomenda seguinte.
 - **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
-  Todas), pesquisa por número ou nome, cartões ordenados por data/hora,
-  interruptor de pagamento (Por Pagar/Pago), edição dos dados e eliminação
-  com confirmação.
-- **Encomendas / A separar / Separado** — três abas para organizar o trabalho
-  de balcão. Cada encomenda começa em **Não separado**; o controlo no cartão
-  permite passá-la para **A separar** e depois para **Separado**. As abas
-  **A separar** e **Separado** mostram apenas as encomendas nessa fase.
+  Todas), pesquisa por número, nome ou telefone, cartões ordenados por
+  data/hora, interruptor de pagamento (Por Pagar/Pago), edição dos dados e
+  eliminação com confirmação.
+- **Encomendas / A separar / Separado** — três filas de trabalho ordenadas da
+  data mais próxima para a mais distante. **Encomendas** mostra as que ainda
+  estão **Não separado**; ao passarem para **A separar** desaparecem dessa
+  aba. Na aba **A separar**, o botão **Passar a separado** envia a encomenda
+  diretamente para **Separado**, onde fica pronta para o cliente.
 
 ## Estrutura
 
@@ -89,8 +90,9 @@ Streamlit e a persistência fica no Supabase.
 - A hora de levantamento é opcional; sem hora, a encomenda aparece no fim do
   dia na listagem.
 - O telefone e o funcionário são obrigatórios no registo de novas encomendas.
-- O estado de separação começa em **Não separado** e pode ser alterado no
-  cartão, sem apagar a encomenda.
+- O estado de separação começa em **Não separado**. A mudança para
+  **A separar** faz-se na aba **Encomendas**; a passagem para **Separado**
+  faz-se na aba **A separar**, sem apagar a encomenda.
 - A eliminação de uma encomenda é permanente e exige confirmação no ecrã.
 - A política RLS incluída no `schema.sql` dá acesso total à chave `anon`, o que
   é adequado a uma app interna cuja chave fica no servidor. Se expuser o

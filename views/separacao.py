@@ -28,6 +28,7 @@ def _estado(encomenda: dict) -> str:
 
 
 def _chave_ordem(encomenda: dict) -> tuple[str, str, int]:
+    """Datas/horas ascendentes: as encomendas mais próximas primeiro."""
     return (
         str(encomenda.get("data_levantamento") or ""),
         str(encomenda.get("hora_levantamento") or "99:99:99"),
@@ -66,8 +67,9 @@ def _mudar_estado(
     )
 
 
-def _cartao(encomenda: dict, com_controlo: bool) -> None:
+def _cartao(encomenda: dict, visao: str) -> None:
     ident = int(encomenda.get("id"))
+    com_controlo = visao == "todas"
     numero_bruto = encomenda.get("numero_encomenda")
     numero = formatar_numero(numero_bruto)
     estado = _estado(encomenda)
@@ -130,14 +132,34 @@ def _cartao(encomenda: dict, com_controlo: bool) -> None:
                 label_visibility="collapsed",
                 width="stretch",
             )
+        elif visao == "a_separar":
+            if st.button(
+                "✅ Passar a separado",
+                key=f"passar_separado_{ident}",
+                type="primary",
+            ):
+                try:
+                    db.atualizar_estado_separacao(ident, "Separado")
+                except db.ErroBaseDados as exc:
+                    st.error(f"Não foi possível atualizar a encomenda. {exc}")
+                else:
+                    ui.flash(
+                        "sucesso",
+                        f"Encomenda {numero} passou para «Separado».",
+                    )
+                    st.rerun()
 
 
 def _filtrar(visao: str, encomendas: list[dict]) -> list[dict]:
+    # "Encomendas" é a fila de trabalho ainda por iniciar; assim que uma
+    # encomenda passa para "A separar" deixa de aparecer nesta aba.
+    if visao == "todas":
+        return [e for e in encomendas if _estado(e) == "Não separado"]
     if visao == "a_separar":
         return [e for e in encomendas if _estado(e) == "A separar"]
     if visao == "separado":
         return [e for e in encomendas if _estado(e) == "Separado"]
-    return list(encomendas)
+    return []
 
 
 def render(
@@ -161,27 +183,18 @@ def render(
         elif visao == "separado":
             st.info("Ainda não há encomendas separadas.")
         else:
-            st.info("Ainda não há encomendas registadas.")
+            st.info("Não há encomendas por separar.")
         return
 
-    if visao == "todas":
-        nao_separadas = sum(
-            1 for encomenda in filtradas if _estado(encomenda) == "Não separado"
-        )
-        a_separar = sum(
-            1 for encomenda in filtradas if _estado(encomenda) == "A separar"
-        )
-        separadas = sum(
-            1 for encomenda in filtradas if _estado(encomenda) == "Separado"
-        )
-        st.caption(
-            f"**{len(filtradas)}** encomenda(s) · "
-            f"**{nao_separadas}** não separada(s) · "
-            f"**{a_separar}** a separar · "
-            f"**{separadas}** separada(s)"
-        )
-    else:
-        st.caption(f"**{len(filtradas)}** encomenda(s)")
+    rotulo = {
+        "todas": "por separar",
+        "a_separar": "a separar",
+        "separado": "separada(s)",
+    }[visao]
+    st.caption(
+        f"**{len(filtradas)}** encomenda(s) {rotulo} · "
+        "ordenadas da data mais próxima para a mais distante"
+    )
 
     for encomenda in filtradas:
-        _cartao(encomenda, com_controlo=(visao == "todas"))
+        _cartao(encomenda, visao)

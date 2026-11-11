@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html
+import re
 from datetime import date, time, timedelta
 
 import streamlit as st
@@ -23,13 +24,21 @@ def _filtrar(
     pesquisa: str,
 ) -> list[dict]:
     termo = pesquisa.strip().lower().lstrip("#")
+    termo_digitos = re.sub(r"\D", "", termo)
     resultado: list[dict] = []
 
     for encomenda in encomendas:
         if termo:
             nome = (encomenda.get("nome_cliente") or "").lower()
             numero = str(encomenda.get("numero_encomenda") or "")
-            if termo not in nome and termo not in numero:
+            telefone = (encomenda.get("telefone") or "").lower()
+            telefone_digitos = re.sub(r"\D", "", telefone)
+            if (
+                termo not in nome
+                and termo not in numero
+                and termo not in telefone
+                and not (termo_digitos and termo_digitos in telefone_digitos)
+            ):
                 continue
         resultado.append(encomenda)
 
@@ -297,9 +306,9 @@ def render() -> None:
 
     with filtro_pesquisa:
         pesquisa = st.text_input(
-            "Pesquisar por nº ou nome",
+            "Pesquisar por nº, nome ou telefone",
             key="gestao_pesquisa",
-            placeholder="Ex.: 42 ou Maria",
+            placeholder="Ex.: 42, Maria ou 912 345 678",
         )
 
     inicio: date | None
