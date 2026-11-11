@@ -392,10 +392,65 @@ _CSS = """
         .app-header h1 { font-size: 1.5rem; }
         .app-header .pinheiro { font-size: 2.4rem; right: .7rem; opacity: .55; }
         .nd-valor { font-size: 3.1rem; }
-        .stButton > button { width: 100%; }
+
+        /* Alvos de toque confortáveis no telemóvel */
+        .stButton > button,
+        .stDownloadButton > button {
+            width: 100%;
+            min-height: 3rem;
+            padding: .7rem 1rem;
+            font-size: .95rem;
+            touch-action: manipulation;
+        }
+        .stLinkButton > a,
+        .stLinkButton a,
+        div[data-testid="stLinkButton"] a,
+        a[data-testid^="stBaseLinkButton"] {
+            min-height: 3rem;
+            padding: .7rem 1rem;
+            font-size: .95rem;
+            touch-action: manipulation;
+        }
+        .stFormSubmitButton > button,
+        button[kind="primaryFormSubmit"] {
+            min-height: 3.1rem;
+            padding: .75rem 1.2rem;
+            font-size: 1rem;
+            touch-action: manipulation;
+        }
+
+        /* Editar/Apagar continuam discretos, mas com alvo de toque maior */
+        [class*="st-key-editar_"] button,
+        [class*="st-key-apagar_"] button {
+            width: 100% !important;
+            min-height: 2.8rem !important;
+            padding: .5rem .9rem !important;
+            font-size: .8rem !important;
+        }
+        [class*="st-key-testar_ligacao"] button {
+            width: auto !important;
+            min-height: 2.6rem !important;
+        }
+
+        .stButton > button:hover,
+        .stLinkButton a:hover,
+        .stFormSubmitButton > button:hover,
+        [class*="st-key-editar_"] button:hover,
+        [class*="st-key-apagar_"] button:hover { transform: none; }
+
+        .stButton > button:active,
+        .stLinkButton a:active,
+        .stFormSubmitButton > button:active,
+        [class*="st-key-editar_"] button:active,
+        [class*="st-key-apagar_"] button:active { transform: scale(.985); }
+
+        .stTabs [data-baseweb="tab"] {
+            min-height: 2.8rem;
+            padding: .55rem .7rem;
+        }
 
         /* Empilha as colunas para leitura confortável no telemóvel */
-        div[data-testid="stHorizontalBlock"] { flex-wrap: wrap; gap: .35rem; }
+        div[data-testid="stHorizontalBlock"] { flex-wrap: wrap; gap: .55rem; }
         div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
             flex: 1 1 100% !important;
             width: 100% !important;
