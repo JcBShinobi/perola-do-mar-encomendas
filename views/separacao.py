@@ -117,12 +117,34 @@ def _cartao(encomenda: dict, visao: str) -> None:
                 ):
                     _atualizar_estado(ident, numero_bruto, "Separado")
         elif visao == "a_separar":
-            if st.button(
-                "✅ Passar a separado",
-                key=f"passar_separado_{ident}",
-                type="primary",
-            ):
-                _atualizar_estado(ident, numero_bruto, "Separado")
+            col_voltar, col_avancar = st.columns(2)
+            with col_voltar:
+                if st.button(
+                    "← Não separado",
+                    key=f"a_separar_para_nao_{ident}",
+                ):
+                    _atualizar_estado(ident, numero_bruto, "Não separado")
+            with col_avancar:
+                if st.button(
+                    "✅ Passar a separado",
+                    key=f"passar_separado_{ident}",
+                    type="primary",
+                ):
+                    _atualizar_estado(ident, numero_bruto, "Separado")
+        elif visao == "separado":
+            col_voltar_nao, col_voltar_a_separar = st.columns(2)
+            with col_voltar_nao:
+                if st.button(
+                    "← Não separado",
+                    key=f"separado_para_nao_{ident}",
+                ):
+                    _atualizar_estado(ident, numero_bruto, "Não separado")
+            with col_voltar_a_separar:
+                if st.button(
+                    "← A separar",
+                    key=f"separado_para_a_separar_{ident}",
+                ):
+                    _atualizar_estado(ident, numero_bruto, "A separar")
 
 
 def _filtrar(visao: str, encomendas: list[dict]) -> list[dict]:
@@ -152,6 +174,21 @@ def render(
 
     filtradas = sorted(_filtrar(visao, encomendas or []), key=_chave_ordem)
 
+    quantidade = len(filtradas)
+    if visao == "separado":
+        adjetivo = "separada" if quantidade == 1 else "separadas"
+    else:
+        adjetivo = "por separar" if visao == "todas" else "a separar"
+    substantivo = "encomenda" if quantidade == 1 else "encomendas"
+    st.markdown(
+        f"<div class='fila-contador'>"
+        f"<span class='fila-numero'>{quantidade}</span>"
+        f"<span class='fila-texto'>{substantivo} {adjetivo}"
+        "<br>ordenadas da data mais próxima para a mais distante"
+        "</span></div>",
+        unsafe_allow_html=True,
+    )
+
     if not filtradas:
         if visao == "a_separar":
             st.info("Não há encomendas em separação.")
@@ -160,16 +197,6 @@ def render(
         else:
             st.info("Não há encomendas por separar.")
         return
-
-    rotulo = {
-        "todas": "por separar",
-        "a_separar": "a separar",
-        "separado": "separada(s)",
-    }[visao]
-    st.caption(
-        f"**{len(filtradas)}** encomenda(s) {rotulo} · "
-        "ordenadas da data mais próxima para a mais distante"
-    )
 
     for encomenda in filtradas:
         _cartao(encomenda, visao)

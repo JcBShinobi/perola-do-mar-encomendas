@@ -102,6 +102,10 @@ def _cartao(encomenda: dict) -> None:
                 ui.badge_pagamento(encomenda.get("estado_pagamento")),
                 unsafe_allow_html=True,
             )
+            st.markdown(
+                ui.badge_separacao(encomenda.get("estado_separacao")),
+                unsafe_allow_html=True,
+            )
 
         produtos = (encomenda.get("produtos") or "").strip()
         if produtos:

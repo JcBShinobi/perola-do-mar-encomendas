@@ -17,11 +17,12 @@ telemóvel como no computador do balcão.
   Todas), pesquisa por número, nome ou telefone, cartões ordenados por
   data/hora, interruptor de pagamento (Por Pagar/Pago), edição dos dados e
   eliminação com confirmação.
-- **Encomendas / A separar / Separado** — três filas de trabalho ordenadas da
-  data mais próxima para a mais distante. **Encomendas** mostra as que ainda
-  estão **Não separado**; ao passarem para **A separar** desaparecem dessa
-  aba. Na aba **A separar**, o botão **Passar a separado** envia a encomenda
-  diretamente para **Separado**, onde fica pronta para o cliente.
+- **Encomendas / A separar / Separado** — três filas de trabalho com
+  contador, ordenadas da data mais próxima para a mais distante. **Encomendas**
+  mostra as que ainda estão **Não separado**; ao passarem para **A separar**
+  desaparecem dessa aba. Na aba **A separar**, o botão **Passar a separado**
+  envia a encomenda para **Separado**. Em **A separar** e **Separado** há
+  botões para voltar atrás e corrigir enganos.
 
 ## Estrutura
 
@@ -92,7 +93,10 @@ Streamlit e a persistência fica no Supabase.
 - O telefone e o funcionário são obrigatórios no registo de novas encomendas.
 - O estado de separação começa em **Não separado**. A mudança para
   **A separar** faz-se na aba **Encomendas**; a passagem para **Separado**
-  faz-se na aba **A separar**, sem apagar a encomenda.
+  faz-se na aba **A separar**. As abas **A separar** e **Separado** permitem
+  voltar atrás sem apagar a encomenda.
+- Na aba **Consulta e gestão** o estado de separação aparece apenas como selo
+  informativo; a alteração faz-se nas abas de organização.
 - A eliminação de uma encomenda é permanente e exige confirmação no ecrã.
 - A política RLS incluída no `schema.sql` dá acesso total à chave `anon`, o que
   é adequado a uma app interna cuja chave fica no servidor. Se expuser o

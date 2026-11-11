@@ -101,6 +101,30 @@ _CSS = """
     .b-a-separar   { background: #fff1c9; color: #7a5a00; }
     .b-separado    { background: #d7f2e0; color: #155c36; }
 
+    /* Contador de cada fila de separação */
+    .fila-contador {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        margin: .2rem 0 .9rem;
+        padding: .55rem .8rem;
+        background: #fff8ef;
+        border: 1px solid #efdfd0;
+        border-radius: 12px;
+    }
+    .fila-contador .fila-numero {
+        font-size: 1.55rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--vinho);
+        font-variant-numeric: tabular-nums;
+    }
+    .fila-contador .fila-texto {
+        font-size: .82rem;
+        line-height: 1.35;
+        color: #6b4a3b;
+    }
+
     /* Número da encomenda em grande destaque */
     .numero-destaque {
         background: linear-gradient(135deg, #1f5c43 0%, #14412f 100%);
