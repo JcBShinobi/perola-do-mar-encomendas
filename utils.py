@@ -122,13 +122,14 @@ def mensagem_sms(registo: dict) -> str:
     numero = formatar_numero(registo.get("numero_encomenda"))
     data = formatar_data(registo.get("data_levantamento"))
     hora = formatar_hora(registo.get("hora_levantamento"))
-    quando = f"{data} às {hora}" if hora else f"{data} (hora a combinar)"
+    quando = f"{data} às {hora}" if hora else data
     funcionario = (registo.get("funcionario") or "").strip() or "não indicado"
     nome = (registo.get("nome_cliente") or "").strip()
     saudacao = f"Olá {nome}. " if nome else ""
     return (
-        f"{saudacao}A sua encomenda {numero} está registada para {quando}. "
-        f"Funcionário: {funcionario}. — Pérola do Mar"
+        f"{saudacao}O número da sua encomenda é {numero}. "
+        f"Data de levantamento: {quando}. "
+        f"Funcionário: {funcionario}.\n— Pérola do Mar"
     )
 
 
