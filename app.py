@@ -133,6 +133,7 @@ def main() -> None:
             "🧺 A separar",
             "✅ Separado",
         ],
+        default="🎄 Nova encomenda",
         key="abas_principais",
         on_change="rerun",
     )
