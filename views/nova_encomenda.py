@@ -11,6 +11,10 @@ import ui
 from utils import formatar_data, formatar_hora, formatar_numero, link_sms
 
 
+def _fechar_ultima() -> None:
+    st.session_state.pop("ultima_encomenda", None)
+
+
 def _mostrar_ultima_encomenda() -> None:
     """Cartão gigante com o número que o funcionário deve dizer ao cliente."""
     registo = st.session_state.get("ultima_encomenda")
@@ -47,17 +51,18 @@ def _mostrar_ultima_encomenda() -> None:
                 width="stretch",
             )
         with col_nova:
-            if st.button(
+            st.button(
                 "Registar outra encomenda",
                 key="fechar_ultima",
                 width="stretch",
-            ):
-                st.session_state.pop("ultima_encomenda", None)
-                st.rerun()
+                on_click=_fechar_ultima,
+            )
     else:
-        if st.button("Registar outra encomenda", key="fechar_ultima"):
-            st.session_state.pop("ultima_encomenda", None)
-            st.rerun()
+        st.button(
+            "Registar outra encomenda",
+            key="fechar_ultima",
+            on_click=_fechar_ultima,
+        )
 
 
 def _guardar(

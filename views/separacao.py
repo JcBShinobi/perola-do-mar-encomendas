@@ -36,27 +36,21 @@ def _chave_ordem(encomenda: dict) -> tuple[str, str, int]:
     )
 
 
-def _atualizar_estado(encomenda_id: int, numero: object, novo: str) -> None:
-    """Atualiza apenas depois de um clique explícito num botão."""
+def _atualizar_estado(encomenda_id: int, novo: str) -> None:
+    """Atualiza no callback, antes do único rerun normal do Streamlit."""
     try:
         db.atualizar_estado_separacao(encomenda_id, novo)
     except db.ErroBaseDados as exc:
-        st.error(f"Não foi possível atualizar a encomenda. {exc}")
+        ui.flash("erro", f"Não foi possível atualizar a encomenda. {exc}")
         return
 
     ui.marcar_dados_alterados()
-    ui.flash(
-        "sucesso",
-        f"Encomenda {formatar_numero(numero)} passou para «{novo}».",
-    )
-    st.rerun()
 
 
 def _cartao(encomenda: dict, visao: str) -> None:
     ident = int(encomenda.get("id"))
     com_controlo = visao == "todas"
-    numero_bruto = encomenda.get("numero_encomenda")
-    numero = formatar_numero(numero_bruto)
+    numero = formatar_numero(encomenda.get("numero_encomenda"))
     estado = _estado(encomenda)
 
     with st.container(border=True):
@@ -105,47 +99,53 @@ def _cartao(encomenda: dict, visao: str) -> None:
         if com_controlo:
             col_a_separar, col_separado = st.columns(2)
             with col_a_separar:
-                if st.button(
+                st.button(
                     "→ A separar",
                     key=f"para_separar_{ident}",
                     type="primary",
-                ):
-                    _atualizar_estado(ident, numero_bruto, "A separar")
+                    on_click=_atualizar_estado,
+                    args=(ident, "A separar"),
+                )
             with col_separado:
-                if st.button(
+                st.button(
                     "✅ Separado",
                     key=f"para_separado_{ident}",
-                ):
-                    _atualizar_estado(ident, numero_bruto, "Separado")
+                    on_click=_atualizar_estado,
+                    args=(ident, "Separado"),
+                )
         elif visao == "a_separar":
             col_voltar, col_avancar = st.columns(2)
             with col_voltar:
-                if st.button(
+                st.button(
                     "← Não separado",
                     key=f"a_separar_para_nao_{ident}",
-                ):
-                    _atualizar_estado(ident, numero_bruto, "Não separado")
+                    on_click=_atualizar_estado,
+                    args=(ident, "Não separado"),
+                )
             with col_avancar:
-                if st.button(
+                st.button(
                     "✅ Passar a separado",
                     key=f"passar_separado_{ident}",
                     type="primary",
-                ):
-                    _atualizar_estado(ident, numero_bruto, "Separado")
+                    on_click=_atualizar_estado,
+                    args=(ident, "Separado"),
+                )
         elif visao == "separado":
             col_voltar_nao, col_voltar_a_separar = st.columns(2)
             with col_voltar_nao:
-                if st.button(
+                st.button(
                     "← Não separado",
                     key=f"separado_para_nao_{ident}",
-                ):
-                    _atualizar_estado(ident, numero_bruto, "Não separado")
+                    on_click=_atualizar_estado,
+                    args=(ident, "Não separado"),
+                )
             with col_voltar_a_separar:
-                if st.button(
+                st.button(
                     "← A separar",
                     key=f"separado_para_a_separar_{ident}",
-                ):
-                    _atualizar_estado(ident, numero_bruto, "A separar")
+                    on_click=_atualizar_estado,
+                    args=(ident, "A separar"),
+                )
 
 
 def _filtrar(visao: str, encomendas: list[dict]) -> list[dict]:

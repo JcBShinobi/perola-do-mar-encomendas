@@ -144,13 +144,21 @@ def _cartao(encomenda: dict) -> None:
             if link:
                 st.link_button("💬 Enviar mensagem", link)
         with col_editar:
-            if st.button("Editar", key=f"editar_{ident}", type="tertiary"):
-                st.session_state["encomenda_edicao"] = encomenda
-                st.rerun()
+            st.button(
+                "Editar",
+                key=f"editar_{ident}",
+                type="tertiary",
+                on_click=_abrir_edicao,
+                args=(encomenda,),
+            )
         with col_apagar:
-            if st.button("Apagar", key=f"apagar_{ident}", type="tertiary"):
-                st.session_state["encomenda_apagar"] = encomenda
-                st.rerun()
+            st.button(
+                "Apagar",
+                key=f"apagar_{ident}",
+                type="tertiary",
+                on_click=_abrir_apagar,
+                args=(encomenda,),
+            )
 
 
 def _data_do_registo(encomenda: dict) -> date:
@@ -176,6 +184,32 @@ def _fechar_edicao() -> None:
 
 def _fechar_apagar() -> None:
     st.session_state.pop("encomenda_apagar", None)
+
+
+def _abrir_edicao(encomenda: dict) -> None:
+    st.session_state["encomenda_edicao"] = encomenda
+
+
+def _abrir_apagar(encomenda: dict) -> None:
+    st.session_state["encomenda_apagar"] = encomenda
+
+
+def _mostrar_mais() -> None:
+    st.session_state["gestao_limite"] = (
+        st.session_state.get("gestao_limite", TAMANHO_PAGINA) + TAMANHO_PAGINA
+    )
+
+
+def _apagar_definitivamente(ident: int, numero: str) -> None:
+    try:
+        db.apagar_encomenda(ident)
+    except db.ErroBaseDados as exc:
+        ui.flash("erro", f"Não foi possível apagar a encomenda. {exc}")
+        return
+
+    ui.marcar_dados_alterados()
+    st.session_state.pop("encomenda_apagar", None)
+    ui.flash("sucesso", f"Encomenda {numero} apagada.")
 
 
 @st.dialog("Editar encomenda", width="large", on_dismiss=_fechar_edicao)
@@ -257,9 +291,7 @@ def _dialogo_editar(encomenda: dict) -> None:
         ui.flash("sucesso", f"Encomenda {numero} atualizada.")
         st.rerun()
 
-    if st.button("Cancelar"):
-        st.session_state.pop("encomenda_edicao", None)
-        st.rerun()
+    st.button("Cancelar", on_click=_fechar_edicao)
 
 
 @st.dialog("Apagar encomenda", on_dismiss=_fechar_apagar)
@@ -276,20 +308,14 @@ def _dialogo_apagar(encomenda: dict) -> None:
 
     col_cancelar, col_apagar = st.columns(2)
     with col_cancelar:
-        if st.button("Cancelar"):
-            st.session_state.pop("encomenda_apagar", None)
-            st.rerun()
+        st.button("Cancelar", on_click=_fechar_apagar)
     with col_apagar:
-        if st.button("Apagar definitivamente", type="primary"):
-            try:
-                db.apagar_encomenda(ident)
-            except db.ErroBaseDados as exc:
-                st.error(f"Não foi possível apagar a encomenda. {exc}")
-                return
-            ui.marcar_dados_alterados()
-            st.session_state.pop("encomenda_apagar", None)
-            ui.flash("sucesso", f"Encomenda {numero} apagada.")
-            st.rerun()
+        st.button(
+            "Apagar definitivamente",
+            type="primary",
+            on_click=_apagar_definitivamente,
+            args=(ident, numero),
+        )
 
 
 def render() -> None:
@@ -362,6 +388,8 @@ def render() -> None:
 
     if len(filtradas) > limite:
         restantes = len(filtradas) - limite
-        if st.button(f"Mostrar mais ({restantes} restantes)", key="gestao_mostrar_mais"):
-            st.session_state["gestao_limite"] = limite + TAMANHO_PAGINA
-            st.rerun()
+        st.button(
+            f"Mostrar mais ({restantes} restantes)",
+            key="gestao_mostrar_mais",
+            on_click=_mostrar_mais,
+        )
