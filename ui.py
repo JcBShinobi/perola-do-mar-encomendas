@@ -397,12 +397,18 @@ _CSS = """
         .stButton,
         .stDownloadButton,
         .stLinkButton,
-        .stFormSubmitButton { width: 100%; }
+        .stFormSubmitButton { width: 100% !important; }
+        div[data-testid="stElementContainer"]:has(> .stButton),
+        div[data-testid="stElementContainer"]:has(> .stDownloadButton),
+        div[data-testid="stElementContainer"]:has(> .stLinkButton),
+        div[data-testid="stElementContainer"]:has(> .stFormSubmitButton) {
+            width: 100% !important;
+        }
         [class*="st-key-testar_ligacao"] { width: auto !important; }
 
         .stButton > button,
         .stDownloadButton > button {
-            width: 100%;
+            width: 100% !important;
             min-height: 3rem;
             padding: .7rem 1rem;
             font-size: .95rem;
