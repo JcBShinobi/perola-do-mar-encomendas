@@ -178,12 +178,6 @@ _CSS = """
         background: #f7ece2 !important;
     }
 
-    /* Controlo de separação compacto nos cartões */
-    [class*="st-key-separacao_"] button {
-        min-height: 1.9rem !important;
-        padding: .16rem .48rem !important;
-        font-size: .78rem !important;
-    }
 
     @media (max-width: 700px) {
         div[data-testid="stMainBlockContainer"] {

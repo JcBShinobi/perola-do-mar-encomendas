@@ -36,35 +36,19 @@ def _chave_ordem(encomenda: dict) -> tuple[str, str, int]:
     )
 
 
-def _chave_widget(encomenda_id: int) -> str:
-    return f"separacao_{encomenda_id}"
-
-
-def _mudar_estado(
-    encomenda_id: int,
-    numero: object,
-    estado_atual: str,
-    chave: str,
-) -> None:
-    novo = st.session_state.get(chave)
-    if novo not in db.ESTADOS_SEPARACAO or novo == estado_atual:
-        return
-
+def _atualizar_estado(encomenda_id: int, numero: object, novo: str) -> None:
+    """Atualiza apenas depois de um clique explícito num botão."""
     try:
         db.atualizar_estado_separacao(encomenda_id, novo)
     except db.ErroBaseDados as exc:
-        st.session_state[chave] = estado_atual
-        ui.flash(
-            "erro",
-            f"Não foi possível atualizar a separação de "
-            f"{formatar_numero(numero)}. {exc}",
-        )
+        st.error(f"Não foi possível atualizar a encomenda. {exc}")
         return
 
     ui.flash(
         "sucesso",
-        f"Encomenda {formatar_numero(numero)} atualizada para «{novo}».",
+        f"Encomenda {formatar_numero(numero)} passou para «{novo}».",
     )
+    st.rerun()
 
 
 def _cartao(encomenda: dict, visao: str) -> None:
@@ -96,11 +80,10 @@ def _cartao(encomenda: dict, visao: str) -> None:
                 ui.badge_pagamento(encomenda.get("estado_pagamento")),
                 unsafe_allow_html=True,
             )
-            if not com_controlo:
-                st.markdown(
-                    ui.badge_separacao(estado),
-                    unsafe_allow_html=True,
-                )
+            st.markdown(
+                ui.badge_separacao(estado),
+                unsafe_allow_html=True,
+            )
 
         produtos = (encomenda.get("produtos") or "").strip()
         if produtos:
@@ -119,35 +102,27 @@ def _cartao(encomenda: dict, visao: str) -> None:
             )
 
         if com_controlo:
-            chave = _chave_widget(ident)
-            valor_atual = st.session_state.get(chave)
-            if valor_atual not in db.ESTADOS_SEPARACAO or valor_atual != estado:
-                st.session_state[chave] = estado
-            st.segmented_control(
-                "Separação",
-                db.ESTADOS_SEPARACAO,
-                key=chave,
-                on_change=_mudar_estado,
-                args=(ident, numero_bruto, estado, chave),
-                label_visibility="collapsed",
-                width="stretch",
-            )
+            col_a_separar, col_separado = st.columns(2)
+            with col_a_separar:
+                if st.button(
+                    "→ A separar",
+                    key=f"para_separar_{ident}",
+                    type="primary",
+                ):
+                    _atualizar_estado(ident, numero_bruto, "A separar")
+            with col_separado:
+                if st.button(
+                    "✅ Separado",
+                    key=f"para_separado_{ident}",
+                ):
+                    _atualizar_estado(ident, numero_bruto, "Separado")
         elif visao == "a_separar":
             if st.button(
                 "✅ Passar a separado",
                 key=f"passar_separado_{ident}",
                 type="primary",
             ):
-                try:
-                    db.atualizar_estado_separacao(ident, "Separado")
-                except db.ErroBaseDados as exc:
-                    st.error(f"Não foi possível atualizar a encomenda. {exc}")
-                else:
-                    ui.flash(
-                        "sucesso",
-                        f"Encomenda {numero} passou para «Separado».",
-                    )
-                    st.rerun()
+                _atualizar_estado(ident, numero_bruto, "Separado")
 
 
 def _filtrar(visao: str, encomendas: list[dict]) -> list[dict]:
