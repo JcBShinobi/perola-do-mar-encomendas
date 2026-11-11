@@ -44,6 +44,7 @@ def _mostrar_ultima_encomenda() -> None:
 def _guardar(
     nome: str,
     telefone: str,
+    funcionario: str,
     produtos: str,
     dia: date,
     hora: object,
@@ -53,6 +54,10 @@ def _guardar(
     erros: list[str] = []
     if not nome.strip():
         erros.append("Indique o nome do cliente.")
+    if not telefone.strip():
+        erros.append("Indique o número de telefone.")
+    if not funcionario.strip():
+        erros.append("Indique o funcionário.")
     if not produtos.strip():
         erros.append("Indique os produtos e as quantidades.")
     if not isinstance(dia, date):
@@ -67,6 +72,7 @@ def _guardar(
             {
                 "nome_cliente": nome,
                 "telefone": telefone,
+                "funcionario": funcionario,
                 "produtos": produtos,
                 "data_levantamento": dia,
                 "hora_levantamento": hora,
@@ -94,11 +100,19 @@ def render() -> None:
             key=f"nc_nome_{versao}",
             placeholder="Ex.: Maria Silva",
         )
-        telefone = st.text_input(
-            "Telefone",
-            key=f"nc_telefone_{versao}",
-            placeholder="Ex.: 912 345 678",
-        )
+        col_telefone, col_funcionario = st.columns(2)
+        with col_telefone:
+            telefone = st.text_input(
+                "Telefone *",
+                key=f"nc_telefone_{versao}",
+                placeholder="Ex.: 912 345 678",
+            )
+        with col_funcionario:
+            funcionario = st.text_input(
+                "Funcionário *",
+                key=f"nc_funcionario_{versao}",
+                placeholder="Ex.: Ana",
+            )
         produtos = st.text_area(
             "Produtos e quantidades *",
             key=f"nc_produtos_{versao}",
@@ -143,6 +157,7 @@ def render() -> None:
         _guardar(
             nome,
             telefone,
+            funcionario,
             produtos,
             dia,
             hora,

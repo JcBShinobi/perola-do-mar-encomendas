@@ -13,6 +13,8 @@ from supabase import Client, create_client
 
 TABELA = "encomendas"
 ESTADOS_PAGAMENTO: tuple[str, ...] = ("Por Pagar", "Pago")
+ESTADOS_SEPARACAO: tuple[str, ...] = ("Não separado", "A separar", "Separado")
+ESTADO_SEPARACAO_INICIAL = ESTADOS_SEPARACAO[0]
 LIMITE_CONSULTA = 1000
 
 
@@ -124,11 +126,17 @@ def verificar_ligacao() -> None:
 def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
     """Insere uma encomenda e devolve o registo completo (com o nº gerado)."""
     nome = (dados.get("nome_cliente") or "").strip()
+    telefone = (dados.get("telefone") or "").strip()
+    funcionario = (dados.get("funcionario") or "").strip()
     produtos = (dados.get("produtos") or "").strip()
     dia = dados.get("data_levantamento")
 
     if not nome:
         raise ErroBaseDados("O nome do cliente é obrigatório.")
+    if not telefone:
+        raise ErroBaseDados("O número de telefone é obrigatório.")
+    if not funcionario:
+        raise ErroBaseDados("O funcionário é obrigatório.")
     if not produtos:
         raise ErroBaseDados("Indique os produtos da encomenda.")
     if not isinstance(dia, date):
@@ -141,7 +149,8 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
 
     registo = {
         "nome_cliente": nome,
-        "telefone": (dados.get("telefone") or "").strip() or None,
+        "telefone": telefone,
+        "funcionario": funcionario,
         "produtos": produtos,
         "data_levantamento": dia.isoformat(),
         "hora_levantamento": hora.strftime("%H:%M:%S") if isinstance(hora, time) else None,
@@ -197,6 +206,13 @@ def atualizar_estado_pagamento(encomenda_id: int, pago: bool) -> None:
         encomenda_id,
         {"estado_pagamento": "Pago" if pago else "Por Pagar"},
     )
+
+
+def atualizar_estado_separacao(encomenda_id: int, estado: str) -> None:
+    """Atualiza a fase de separação de uma encomenda."""
+    if estado not in ESTADOS_SEPARACAO:
+        raise ErroBaseDados("Estado de separação inválido.")
+    _atualizar(encomenda_id, {"estado_separacao": estado})
 
 
 def atualizar_encomenda(encomenda_id: int, dados: dict[str, Any]) -> None:

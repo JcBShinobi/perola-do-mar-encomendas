@@ -20,6 +20,8 @@ create table if not exists public.encomendas (
         check (estado_encomenda in ('Pendente', 'Em Produção', 'Pronta', 'Entregue')),
     estado_pagamento text not null default 'Por Pagar'
         check (estado_pagamento in ('Por Pagar', 'Pago')),
+    estado_separacao text not null default 'Não separado'
+        check (estado_separacao in ('Não separado', 'A separar', 'Separado')),
     observacoes text,
     funcionario text,
     created_at timestamp with time zone not null default now()
@@ -30,6 +32,25 @@ alter table public.encomendas
     alter column numero_encomenda
     set default nextval('public.encomendas_numero_seq');
 
+-- Estado de separação (para instalações que já tinham a tabela).
+alter table public.encomendas
+    add column if not exists estado_separacao text not null default 'Não separado';
+
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint
+        where conname = 'encomendas_estado_separacao_check'
+          and conrelid = 'public.encomendas'::regclass
+    ) then
+        alter table public.encomendas
+            add constraint encomendas_estado_separacao_check
+            check (estado_separacao in ('Não separado', 'A separar', 'Separado'));
+    end if;
+end
+$$;
+
 -- Evita números repetidos.
 create unique index if not exists encomendas_numero_encomenda_key
     on public.encomendas (numero_encomenda);
@@ -37,6 +58,10 @@ create unique index if not exists encomendas_numero_encomenda_key
 -- Acelera os filtros por dia/hora usados no painel de gestão.
 create index if not exists encomendas_data_levantamento_idx
     on public.encomendas (data_levantamento, hora_levantamento);
+
+-- Acelera a listagem por fase de separação.
+create index if not exists encomendas_estado_separacao_idx
+    on public.encomendas (estado_separacao, data_levantamento);
 
 -- ============================================================
 -- Acesso com a chave "anon".

@@ -9,14 +9,18 @@ telemóvel como no computador do balcão.
 
 ## Funcionalidades
 
-- **Nova encomenda** — formulário com cliente, telefone, produtos, data, hora
-  opcional, pagamento e observações. Ao guardar, o ecrã mostra em grande
-  destaque o **número gerado** (ex.: `#0042`) para dar ao cliente, e os campos
-  ficam limpos para a encomenda seguinte.
+- **Nova encomenda** — formulário com cliente, telefone e funcionário
+  obrigatórios, produtos, data, hora opcional, pagamento e observações. Ao
+  guardar, o ecrã mostra em grande destaque o **número gerado** (ex.: `#0042`)
+  para dar ao cliente, e os campos ficam limpos para a encomenda seguinte.
 - **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
   Todas), pesquisa por número ou nome, cartões ordenados por data/hora,
   interruptor de pagamento (Por Pagar/Pago), edição dos dados e eliminação
   com confirmação.
+- **Encomendas / A separar / Separado** — três abas para organizar o trabalho
+  de balcão. Cada encomenda começa em **Não separado**; o controlo no cartão
+  permite passá-la para **A separar** e depois para **Separado**. As abas
+  **A separar** e **Separado** mostram apenas as encomendas nessa fase.
 
 ## Estrutura
 
@@ -27,6 +31,7 @@ utils.py                    Formatação de datas, horas e números
 ui.py                       CSS responsivo, badges e mensagens
 views/nova_encomenda.py     Registo de encomendas
 views/gestao.py             Filtros, pesquisa e pagamento
+views/separacao.py          Organização por fase de separação
 schema.sql                  Tabela, sequência, índices e permissões
 .streamlit/config.toml      Tema visual
 .streamlit/secrets.toml.example
@@ -83,6 +88,9 @@ Streamlit e a persistência fica no Supabase.
   números repetidos mesmo com vários postos a registar ao mesmo tempo.
 - A hora de levantamento é opcional; sem hora, a encomenda aparece no fim do
   dia na listagem.
+- O telefone e o funcionário são obrigatórios no registo de novas encomendas.
+- O estado de separação começa em **Não separado** e pode ser alterado no
+  cartão, sem apagar a encomenda.
 - A eliminação de uma encomenda é permanente e exige confirmação no ecrã.
 - A política RLS incluída no `schema.sql` dá acesso total à chave `anon`, o que
   é adequado a uma app interna cuja chave fica no servidor. Se expuser o

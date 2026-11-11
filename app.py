@@ -17,6 +17,8 @@ O script completo, incluindo permissões, está em `schema.sql`.
             check (estado_encomenda in ('Pendente', 'Em Produção', 'Pronta', 'Entregue')),
         estado_pagamento text not null default 'Por Pagar'
             check (estado_pagamento in ('Por Pagar', 'Pago')),
+        estado_separacao text not null default 'Não separado'
+            check (estado_separacao in ('Não separado', 'A separar', 'Separado')),
         observacoes text,
         funcionario text,
         created_at timestamp with time zone not null default now()
@@ -36,7 +38,7 @@ import streamlit as st
 
 import db
 import ui
-from views import gestao, nova_encomenda
+from views import gestao, nova_encomenda, separacao
 
 st.set_page_config(
     page_title="Pérola do Mar · Encomendas de Natal",
@@ -115,11 +117,35 @@ def main() -> None:
     ui.cabecalho()
     ui.mostrar_flash()
 
-    aba_nova, aba_gestao = st.tabs(["🎄 Nova encomenda", "📋 Consulta e gestão"])
+    encomendas_organizacao, erro_organizacao = separacao.carregar()
+
+    (
+        aba_nova,
+        aba_gestao,
+        aba_encomendas,
+        aba_a_separar,
+        aba_separado,
+    ) = st.tabs(
+        [
+            "🎄 Nova encomenda",
+            "📋 Consulta e gestão",
+            "📦 Encomendas",
+            "🧺 A separar",
+            "✅ Separado",
+        ],
+        key="abas_principais",
+        on_change="rerun",
+    )
     with aba_nova:
         nova_encomenda.render()
     with aba_gestao:
         gestao.render()
+    with aba_encomendas:
+        separacao.render("todas", encomendas_organizacao, erro_organizacao)
+    with aba_a_separar:
+        separacao.render("a_separar", encomendas_organizacao, erro_organizacao)
+    with aba_separado:
+        separacao.render("separado", encomendas_organizacao, erro_organizacao)
 
 
 main()

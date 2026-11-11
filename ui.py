@@ -97,6 +97,9 @@ _CSS = """
     }
     .b-pago     { background: #d7f2e0; color: #155c36; }
     .b-porpagar { background: #fde2e4; color: #8c1d2f; }
+    .b-nao-separado { background: #f1e7dc; color: #6b4a3b; }
+    .b-a-separar   { background: #fff1c9; color: #7a5a00; }
+    .b-separado    { background: #d7f2e0; color: #155c36; }
 
     /* Número da encomenda em grande destaque */
     .numero-destaque {
@@ -175,6 +178,13 @@ _CSS = """
         background: #f7ece2 !important;
     }
 
+    /* Controlo de separação compacto nos cartões */
+    [class*="st-key-separacao_"] button {
+        min-height: 1.9rem !important;
+        padding: .16rem .48rem !important;
+        font-size: .78rem !important;
+    }
+
     @media (max-width: 700px) {
         div[data-testid="stMainBlockContainer"] {
             padding-top: 1rem;
@@ -222,6 +232,18 @@ def badge_pagamento(estado: str | None) -> str:
     if (estado or "Por Pagar") == "Pago":
         return "<span class='badge b-pago'>💶 Pago</span>"
     return "<span class='badge b-porpagar'>💶 Por pagar</span>"
+
+
+def badge_separacao(estado: str | None) -> str:
+    """Selo compacto com a fase de separação da encomenda."""
+    rotulo = estado or "Não separado"
+    classes = {
+        "Não separado": "b-nao-separado",
+        "A separar": "b-a-separar",
+        "Separado": "b-separado",
+    }
+    classe = classes.get(rotulo, "b-nao-separado")
+    return f"<span class='badge {classe}'>🧺 {rotulo}</span>"
 
 
 def flash(tipo: str, mensagem: str) -> None:
