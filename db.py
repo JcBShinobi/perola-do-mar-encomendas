@@ -14,7 +14,6 @@ import streamlit as st
 from supabase import Client, create_client
 
 TABELA = "encomendas"
-ESTADOS_PAGAMENTO: tuple[str, ...] = ("Por Pagar", "Pago")
 ESTADOS_SEPARACAO: tuple[str, ...] = ("Não separado", "A separar", "Separado")
 ESTADO_SEPARACAO_INICIAL = ESTADOS_SEPARACAO[0]
 LIMITE_CONSULTA = 1000
@@ -29,7 +28,6 @@ _CAMPOS_ASSINATURA = (
     "data_levantamento",
     "hora_levantamento",
     "estado_encomenda",
-    "estado_pagamento",
     "estado_separacao",
     "observacoes",
     "funcionario",
@@ -161,9 +159,6 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
         raise ErroBaseDados("A data de levantamento é obrigatória.")
 
     hora = dados.get("hora_levantamento")
-    pagamento = dados.get("estado_pagamento") or "Por Pagar"
-    if pagamento not in ESTADOS_PAGAMENTO:
-        pagamento = "Por Pagar"
 
     registo = {
         "nome_cliente": nome,
@@ -172,7 +167,6 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
         "produtos": produtos,
         "data_levantamento": dia.isoformat(),
         "hora_levantamento": hora.strftime("%H:%M:%S") if isinstance(hora, time) else None,
-        "estado_pagamento": pagamento,
         "observacoes": (dados.get("observacoes") or "").strip() or None,
     }
 
@@ -265,14 +259,6 @@ def listar_encomendas(
     return list(resposta.data or [])
 
 
-def atualizar_estado_pagamento(encomenda_id: int, pago: bool) -> None:
-    """Marca a encomenda como paga ou por pagar."""
-    _atualizar(
-        encomenda_id,
-        {"estado_pagamento": "Pago" if pago else "Por Pagar"},
-    )
-
-
 def atualizar_estado_separacao(encomenda_id: int, estado: str) -> None:
     """Atualiza a fase de separação de uma encomenda."""
     if estado not in ESTADOS_SEPARACAO:
@@ -294,9 +280,6 @@ def atualizar_encomenda(encomenda_id: int, dados: dict[str, Any]) -> None:
         raise ErroBaseDados("A data de levantamento é obrigatória.")
 
     hora = dados.get("hora_levantamento")
-    pagamento = dados.get("estado_pagamento") or "Por Pagar"
-    if pagamento not in ESTADOS_PAGAMENTO:
-        pagamento = "Por Pagar"
 
     _atualizar(
         encomenda_id,
@@ -308,7 +291,6 @@ def atualizar_encomenda(encomenda_id: int, dados: dict[str, Any]) -> None:
             "hora_levantamento": hora.strftime("%H:%M:%S")
             if isinstance(hora, time)
             else None,
-            "estado_pagamento": pagamento,
             "observacoes": (dados.get("observacoes") or "").strip() or None,
         },
     )

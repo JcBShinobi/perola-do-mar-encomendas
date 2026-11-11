@@ -54,35 +54,9 @@ def _chave_ordem(encomenda: dict) -> tuple[str, str, int]:
     )
 
 
-def _mudar_pagamento(
-    encomenda_id: int,
-    numero: object,
-    pago_atual: bool,
-    chave: str,
-) -> None:
-    novo = bool(st.session_state.get(chave))
-    if novo == pago_atual:
-        return
-    try:
-        db.atualizar_estado_pagamento(encomenda_id, novo)
-        ui.marcar_dados_alterados()
-        ui.flash(
-            "sucesso",
-            f"Encomenda {formatar_numero(numero)} marcada como "
-            f"{'paga' if novo else 'por pagar'}.",
-        )
-    except db.ErroBaseDados as exc:
-        st.session_state[chave] = pago_atual
-        ui.flash(
-            "erro",
-            f"Não foi possível atualizar o pagamento de {formatar_numero(numero)}. {exc}",
-        )
-
-
 def _cartao(encomenda: dict) -> None:
     ident = int(encomenda.get("id"))
     numero = formatar_numero(encomenda.get("numero_encomenda"))
-    pago = (encomenda.get("estado_pagamento") or "Por Pagar") == "Pago"
 
     with st.container(border=True):
         topo_esquerda, topo_direita = st.columns([3, 1.3])
@@ -100,10 +74,6 @@ def _cartao(encomenda: dict) -> None:
                 detalhes.append(f"📞 {encomenda['telefone']}")
             st.caption(" · ".join(detalhes))
         with topo_direita:
-            st.markdown(
-                ui.badge_pagamento(encomenda.get("estado_pagamento")),
-                unsafe_allow_html=True,
-            )
             st.markdown(
                 ui.badge_separacao(encomenda.get("estado_separacao")),
                 unsafe_allow_html=True,
@@ -126,20 +96,7 @@ def _cartao(encomenda: dict) -> None:
             )
 
         link = link_sms(encomenda)
-        col_pago, col_mensagem, col_editar, col_apagar = st.columns([2.2, 1.3, 1, 1])
-        with col_pago:
-            st.toggle(
-                "Pagamento recebido",
-                value=pago,
-                key=f"pago_{ident}_{int(pago)}",
-                on_change=_mudar_pagamento,
-                args=(
-                    ident,
-                    encomenda.get("numero_encomenda"),
-                    pago,
-                    f"pago_{ident}_{int(pago)}",
-                ),
-            )
+        col_mensagem, col_editar, col_apagar = st.columns([2.2, 1, 1])
         with col_mensagem:
             if link:
                 st.link_button("💬 Enviar mensagem", link)
@@ -216,12 +173,6 @@ def _apagar_definitivamente(ident: int, numero: str) -> None:
 def _dialogo_editar(encomenda: dict) -> None:
     ident = int(encomenda["id"])
     numero = formatar_numero(encomenda.get("numero_encomenda"))
-    pagamento_atual = encomenda.get("estado_pagamento") or "Por Pagar"
-    indice_pagamento = (
-        db.ESTADOS_PAGAMENTO.index(pagamento_atual)
-        if pagamento_atual in db.ESTADOS_PAGAMENTO
-        else 0
-    )
 
     st.caption(f"Encomenda {numero} · {encomenda.get('nome_cliente') or '—'}")
 
@@ -244,12 +195,6 @@ def _dialogo_editar(encomenda: dict) -> None:
             "Hora (opcional)",
             value=_hora_do_registo(encomenda),
             step=timedelta(minutes=15),
-        )
-        pagamento = st.radio(
-            "Estado do pagamento",
-            db.ESTADOS_PAGAMENTO,
-            index=indice_pagamento,
-            horizontal=True,
         )
         observacoes = st.text_area(
             "Observações", value=encomenda.get("observacoes") or "", height=80
@@ -278,7 +223,6 @@ def _dialogo_editar(encomenda: dict) -> None:
                     "produtos": produtos,
                     "data_levantamento": dia,
                     "hora_levantamento": hora,
-                    "estado_pagamento": pagamento,
                     "observacoes": observacoes,
                 },
             )
@@ -377,10 +321,7 @@ def render() -> None:
         st.info("Não há encomendas para estes filtros.")
         return
 
-    por_pagar = sum(
-        1 for encomenda in filtradas if encomenda.get("estado_pagamento") != "Pago"
-    )
-    st.caption(f"**{len(filtradas)}** encomenda(s) · **{por_pagar}** por pagar")
+    st.caption(f"**{len(filtradas)}** encomenda(s)")
 
     limite = st.session_state.get("gestao_limite", TAMANHO_PAGINA)
     for encomenda in filtradas[:limite]:

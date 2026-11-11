@@ -97,8 +97,6 @@ _CSS = """
         white-space: nowrap;
         margin: 0 .2rem .25rem 0;
     }
-    .b-pago     { background: #d7f2e0; color: #155c36; }
-    .b-porpagar { background: #fde2e4; color: #8c1d2f; }
     .b-nao-separado { background: #f1e7dc; color: #6b4a3b; }
     .b-a-separar   { background: #fff1c9; color: #7a5a00; }
     .b-separado    { background: #d7f2e0; color: #155c36; }
@@ -490,12 +488,6 @@ def cabecalho() -> None:
         """,
         unsafe_allow_html=True,
     )
-
-
-def badge_pagamento(estado: str | None) -> str:
-    if (estado or "Por Pagar") == "Pago":
-        return "<span class='badge b-pago'>💶 Pago</span>"
-    return "<span class='badge b-porpagar'>💶 Por pagar</span>"
 
 
 def badge_separacao(estado: str | None) -> str:

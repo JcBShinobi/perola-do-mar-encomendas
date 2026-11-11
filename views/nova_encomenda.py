@@ -72,7 +72,6 @@ def _guardar(
     produtos: str,
     dia: date,
     hora: object,
-    pagamento: str,
     observacoes: str,
 ) -> None:
     erros: list[str] = []
@@ -100,7 +99,6 @@ def _guardar(
                 "produtos": produtos,
                 "data_levantamento": dia,
                 "hora_levantamento": hora,
-                "estado_pagamento": pagamento,
                 "observacoes": observacoes,
             }
         )
@@ -163,13 +161,6 @@ def render() -> None:
                 key=f"nc_hora_{versao}",
             )
 
-        pagamento = st.radio(
-            "Estado do pagamento",
-            db.ESTADOS_PAGAMENTO,
-            horizontal=True,
-            index=0,
-            key=f"nc_pagamento_{versao}",
-        )
         observacoes = st.text_area(
             "Observações",
             key=f"nc_observacoes_{versao}",
@@ -187,6 +178,5 @@ def render() -> None:
             produtos,
             dia,
             hora,
-            pagamento,
             observacoes,
         )

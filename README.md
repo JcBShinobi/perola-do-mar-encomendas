@@ -10,13 +10,12 @@ telemóvel como no computador do balcão.
 ## Funcionalidades
 
 - **Nova encomenda** — formulário com cliente, telefone e funcionário
-  obrigatórios, produtos, data, hora opcional, pagamento e observações. Ao
-  guardar, o ecrã mostra em grande destaque o **número gerado** (ex.: `#0042`)
+  obrigatórios, produtos, data, hora opcional e observações. Ao guardar, o
+  ecrã mostra em grande destaque o **número gerado** (ex.: `#0042`)
   para dar ao cliente, e os campos ficam limpos para a encomenda seguinte.
 - **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
   Todas), pesquisa por número, nome ou telefone, cartões ordenados por
-  data/hora, interruptor de pagamento (Por Pagar/Pago), edição dos dados e
-  eliminação com confirmação.
+  data/hora, edição dos dados e eliminação com confirmação.
 - **Enviar mensagem** — no painel de confirmação e nos cartões da consulta,
   abre a app de SMS do telemóvel com uma mensagem pré-preenchida com o número
   da encomenda, a data/hora e o funcionário.
@@ -38,7 +37,7 @@ db.py                       Acesso ao Supabase e tradução de erros
 utils.py                    Formatação de datas, horas e números
 ui.py                       CSS responsivo, badges e mensagens
 views/nova_encomenda.py     Registo de encomendas
-views/gestao.py             Filtros, pesquisa e pagamento
+views/gestao.py             Filtros, pesquisa e edição
 views/separacao.py          Organização por fase de separação
 schema.sql                  Tabela, sequência, índices e permissões
 .streamlit/config.toml      Tema visual

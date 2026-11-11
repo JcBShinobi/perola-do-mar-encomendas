@@ -72,10 +72,6 @@ def _cartao(encomenda: dict, visao: str) -> None:
             st.caption(" · ".join(detalhes))
         with topo_direita:
             st.markdown(
-                ui.badge_pagamento(encomenda.get("estado_pagamento")),
-                unsafe_allow_html=True,
-            )
-            st.markdown(
                 ui.badge_separacao(estado),
                 unsafe_allow_html=True,
             )

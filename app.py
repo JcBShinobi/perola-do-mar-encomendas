@@ -15,8 +15,6 @@ O script completo, incluindo permissões, está em `schema.sql`.
         hora_levantamento time,
         estado_encomenda text not null default 'Pendente'
             check (estado_encomenda in ('Pendente', 'Em Produção', 'Pronta', 'Entregue')),
-        estado_pagamento text not null default 'Por Pagar'
-            check (estado_pagamento in ('Por Pagar', 'Pago')),
         estado_separacao text not null default 'Não separado'
             check (estado_separacao in ('Não separado', 'A separar', 'Separado')),
         observacoes text,
