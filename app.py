@@ -32,6 +32,8 @@ Configure depois `.streamlit/secrets.toml` com SUPABASE_URL e SUPABASE_KEY.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
 import streamlit as st
@@ -99,6 +101,29 @@ def _verificar_ligacao() -> None:
     st.session_state["ligacao_ok"] = True
 
 
+def _assinatura_local() -> str:
+    """Fallback durante um redeploy em que o módulo db ainda está em cache."""
+    cliente = db.get_client()
+    resposta = (
+        cliente.table(db.TABELA)
+        .select("id,xmin")
+        .order("id")
+        .limit(getattr(db, "LIMITE_CONSULTA", 1000))
+        .execute()
+    )
+    linhas = sorted(
+        list(resposta.data or []),
+        key=lambda linha: int(linha.get("id") or 0),
+    )
+    payload = json.dumps(
+        linhas,
+        sort_keys=True,
+        ensure_ascii=False,
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 @st.fragment(run_every=INTERVALO_ATUALIZACAO)
 def _vigiar_encomendas() -> None:
     """Recarrega a app quando outra sessão cria, edita ou elimina encomendas."""
@@ -110,6 +135,13 @@ def _vigiar_encomendas() -> None:
 
     try:
         assinatura = db.assinatura_encomendas()
+    except AttributeError:
+        # O Streamlit Cloud pode manter o módulo db anterior em cache durante
+        # o redeploy; o fallback evita que a app fique indisponível.
+        try:
+            assinatura = _assinatura_local()
+        except Exception:
+            return
     except db.ErroBaseDados:
         # A app principal já apresenta o erro de ligação; tentamos novamente
         # na próxima verificação automática.
