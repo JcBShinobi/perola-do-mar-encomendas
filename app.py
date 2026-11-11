@@ -40,6 +40,8 @@ import db
 import ui
 from views import gestao, nova_encomenda, separacao
 
+INTERVALO_ATUALIZACAO = "5s"
+
 st.set_page_config(
     page_title="Pérola do Mar · Encomendas de Natal",
     page_icon="🎄",
@@ -97,9 +99,35 @@ def _verificar_ligacao() -> None:
     st.session_state["ligacao_ok"] = True
 
 
+@st.fragment(run_every=INTERVALO_ATUALIZACAO)
+def _vigiar_encomendas() -> None:
+    """Recarrega a app quando outra sessão cria, edita ou elimina encomendas."""
+    # Mantém o fragmento registado mesmo sem conteúdo visível.
+    st.markdown(
+        "<span style='display:none' data-refresh-watch='1'></span>",
+        unsafe_allow_html=True,
+    )
+
+    try:
+        assinatura = db.assinatura_encomendas()
+    except db.ErroBaseDados:
+        # A app principal já apresenta o erro de ligação; tentamos novamente
+        # na próxima verificação automática.
+        return
+
+    anterior = st.session_state.get(ui.CHAVE_ASSINATURA)
+    if anterior == assinatura:
+        return
+
+    st.session_state[ui.CHAVE_ASSINATURA] = assinatura
+    if anterior is not None:
+        st.rerun(scope="app")
+
+
 def main() -> None:
     ui.inject_css()
     _verificar_ligacao()
+    _vigiar_encomendas()
 
     if st.button(
         " ",

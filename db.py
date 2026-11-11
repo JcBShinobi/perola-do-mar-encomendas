@@ -5,6 +5,8 @@ listas/dicionários e com mensagens de erro já traduzidas para português.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import date, time
 from typing import Any
 
@@ -16,6 +18,22 @@ ESTADOS_PAGAMENTO: tuple[str, ...] = ("Por Pagar", "Pago")
 ESTADOS_SEPARACAO: tuple[str, ...] = ("Não separado", "A separar", "Separado")
 ESTADO_SEPARACAO_INICIAL = ESTADOS_SEPARACAO[0]
 LIMITE_CONSULTA = 1000
+
+# Usada apenas se o PostgREST não expuser xmin (coluna interna do PostgreSQL).
+_CAMPOS_ASSINATURA = (
+    "id",
+    "numero_encomenda",
+    "nome_cliente",
+    "telefone",
+    "produtos",
+    "data_levantamento",
+    "hora_levantamento",
+    "estado_encomenda",
+    "estado_pagamento",
+    "estado_separacao",
+    "observacoes",
+    "funcionario",
+)
 
 
 class ErroBaseDados(Exception):
@@ -172,6 +190,53 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
             "Verifique a aba de consulta antes de a repetir."
         )
     return linhas[0]
+
+
+def _assinatura_linhas(linhas: list[dict[str, Any]]) -> str:
+    """Calcula uma assinatura estável a partir das versões das linhas."""
+    ordenadas = sorted(linhas, key=lambda linha: int(linha.get("id") or 0))
+    payload = json.dumps(
+        ordenadas,
+        sort_keys=True,
+        ensure_ascii=False,
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def assinatura_encomendas() -> str:
+    """Devolve uma impressão digital leve de todas as encomendas.
+
+    O ``xmin`` é a versão interna da linha no PostgreSQL e muda em qualquer
+    UPDATE. Ler apenas ``id`` e ``xmin`` permite detetar criações, edições e
+    eliminações sem transferir o conteúdo das encomendas a cada verificação.
+    """
+    cliente = get_client()
+    try:
+        resposta = (
+            cliente.table(TABELA)
+            .select("id,xmin")
+            .order("id")
+            .limit(LIMITE_CONSULTA)
+            .execute()
+        )
+        return _assinatura_linhas(list(resposta.data or []))
+    except Exception as exc:
+        if "xmin" not in str(exc).lower():
+            raise ErroBaseDados(_traduzir(exc)) from exc
+
+    # Compatibilidade com instalações em que xmin não está exposto.
+    try:
+        resposta = (
+            cliente.table(TABELA)
+            .select(",".join(_CAMPOS_ASSINATURA))
+            .order("id")
+            .limit(LIMITE_CONSULTA)
+            .execute()
+        )
+    except Exception as exc:
+        raise ErroBaseDados(_traduzir(exc)) from exc
+    return _assinatura_linhas(list(resposta.data or []))
 
 
 def listar_encomendas(

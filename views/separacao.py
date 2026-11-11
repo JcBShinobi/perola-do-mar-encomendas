@@ -44,6 +44,7 @@ def _atualizar_estado(encomenda_id: int, numero: object, novo: str) -> None:
         st.error(f"Não foi possível atualizar a encomenda. {exc}")
         return
 
+    ui.marcar_dados_alterados()
     ui.flash(
         "sucesso",
         f"Encomenda {formatar_numero(numero)} passou para «{novo}».",

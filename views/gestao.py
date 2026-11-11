@@ -65,6 +65,7 @@ def _mudar_pagamento(
         return
     try:
         db.atualizar_estado_pagamento(encomenda_id, novo)
+        ui.marcar_dados_alterados()
         ui.flash(
             "sucesso",
             f"Encomenda {formatar_numero(numero)} marcada como "
@@ -251,6 +252,7 @@ def _dialogo_editar(encomenda: dict) -> None:
             st.error(f"Não foi possível atualizar a encomenda. {exc}")
             return
 
+        ui.marcar_dados_alterados()
         st.session_state.pop("encomenda_edicao", None)
         ui.flash("sucesso", f"Encomenda {numero} atualizada.")
         st.rerun()
@@ -284,6 +286,7 @@ def _dialogo_apagar(encomenda: dict) -> None:
             except db.ErroBaseDados as exc:
                 st.error(f"Não foi possível apagar a encomenda. {exc}")
                 return
+            ui.marcar_dados_alterados()
             st.session_state.pop("encomenda_apagar", None)
             ui.flash("sucesso", f"Encomenda {numero} apagada.")
             st.rerun()

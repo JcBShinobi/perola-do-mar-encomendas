@@ -20,6 +20,9 @@ telemóvel como no computador do balcão.
 - **Enviar mensagem** — no painel de confirmação e nos cartões da consulta,
   abre a app de SMS do telemóvel com uma mensagem pré-preenchida com o número
   da encomenda, a data/hora e o funcionário.
+- **Atualização automática** — a app verifica alterações a cada 5 segundos;
+  encomendas criadas, editadas ou mudadas de estado noutro posto aparecem sem
+  ser preciso mudar de aba ou clicar em nada.
 - **Encomendas / A separar / Separado** — três filas de trabalho com
   contador, ordenadas da data mais próxima para a mais distante. **Encomendas**
   mostra as que ainda estão **Não separado**; ao passarem para **A separar**

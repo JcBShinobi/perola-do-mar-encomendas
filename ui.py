@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+CHAVE_ASSINATURA = "_assinatura_encomendas"
+
 _CSS = """
 <style>
     :root {
@@ -277,3 +279,12 @@ def mostrar_flash() -> None:
             st.success(mensagem)
         else:
             st.error(mensagem)
+
+
+def marcar_dados_alterados() -> None:
+    """Invalida a assinatura local após uma escrita feita nesta sessão.
+
+    O próximo rerun volta a ler a assinatura, mas não dispara um segundo
+    rerun automático pelo simples facto de os dados terem mudado.
+    """
+    st.session_state.pop(CHAVE_ASSINATURA, None)

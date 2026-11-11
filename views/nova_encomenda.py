@@ -103,6 +103,8 @@ def _guardar(
         st.error(f"Não foi possível guardar a encomenda. {exc}")
         return
 
+    ui.marcar_dados_alterados()
+
     # Nova chave de formulário => todos os campos voltam ao estado inicial.
     st.session_state["ultima_encomenda"] = registo
     st.session_state["form_versao"] = st.session_state.get("form_versao", 0) + 1
