@@ -9,7 +9,7 @@ import db
 import ui
 from utils import formatar_data, formatar_hora, formatar_numero
 
-VISOES = ("todas", "a_separar", "separado")
+VISOES = ("todas", "a_separar", "separado", "entregue")
 
 
 def carregar() -> tuple[list[dict] | None, str | None]:
@@ -127,7 +127,7 @@ def _cartao(encomenda: dict, visao: str) -> None:
                     args=(ident, "Separado"),
                 )
         elif visao == "separado":
-            col_voltar_nao, col_voltar_a_separar = st.columns(2)
+            col_voltar_nao, col_voltar_a_separar, col_entregue = st.columns(3)
             with col_voltar_nao:
                 st.button(
                     "← Não separado",
@@ -142,6 +142,30 @@ def _cartao(encomenda: dict, visao: str) -> None:
                     on_click=_atualizar_estado,
                     args=(ident, "A separar"),
                 )
+            with col_entregue:
+                st.button(
+                    "🚚 Entregue",
+                    key=f"entregar_{ident}",
+                    type="primary",
+                    on_click=_atualizar_estado,
+                    args=(ident, "Entregue"),
+                )
+        elif visao == "entregue":
+            col_voltar_separado, col_voltar_a_separar = st.columns(2)
+            with col_voltar_separado:
+                st.button(
+                    "← Separado",
+                    key=f"entregue_para_separado_{ident}",
+                    on_click=_atualizar_estado,
+                    args=(ident, "Separado"),
+                )
+            with col_voltar_a_separar:
+                st.button(
+                    "← A separar",
+                    key=f"entregue_para_a_separar_{ident}",
+                    on_click=_atualizar_estado,
+                    args=(ident, "A separar"),
+                )
 
 
 def _filtrar(visao: str, encomendas: list[dict]) -> list[dict]:
@@ -153,6 +177,8 @@ def _filtrar(visao: str, encomendas: list[dict]) -> list[dict]:
         return [e for e in encomendas if _estado(e) == "A separar"]
     if visao == "separado":
         return [e for e in encomendas if _estado(e) == "Separado"]
+    if visao == "entregue":
+        return [e for e in encomendas if _estado(e) == "Entregue"]
     return []
 
 
@@ -174,6 +200,8 @@ def render(
     quantidade = len(filtradas)
     if visao == "separado":
         adjetivo = "separada" if quantidade == 1 else "separadas"
+    elif visao == "entregue":
+        adjetivo = "entregue" if quantidade == 1 else "entregues"
     else:
         adjetivo = "por separar" if visao == "todas" else "a separar"
     substantivo = "encomenda" if quantidade == 1 else "encomendas"
@@ -191,9 +219,16 @@ def render(
             st.info("Não há encomendas em separação.")
         elif visao == "separado":
             st.info("Ainda não há encomendas separadas.")
+        elif visao == "entregue":
+            st.info("Ainda não há encomendas entregues.")
         else:
             st.info("Não há encomendas por separar.")
         return
 
-    for encomenda in filtradas:
+    pagina_itens, pagina, total_paginas = ui.paginar(
+        filtradas, f"sep_pagina_{visao}"
+    )
+    for encomenda in pagina_itens:
         _cartao(encomenda, visao)
+
+    ui.navegacao_paginas(f"sep_pagina_{visao}", pagina, total_paginas)

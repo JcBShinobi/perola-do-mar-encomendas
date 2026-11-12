@@ -19,7 +19,7 @@ create table if not exists public.encomendas (
     estado_encomenda text not null default 'Pendente'
         check (estado_encomenda in ('Pendente', 'Em Produção', 'Pronta', 'Entregue')),
     estado_separacao text not null default 'Não separado'
-        check (estado_separacao in ('Não separado', 'A separar', 'Separado')),
+        check (estado_separacao in ('Não separado', 'A separar', 'Separado', 'Entregue')),
     observacoes text,
     funcionario text,
     created_at timestamp with time zone not null default now()
@@ -30,24 +30,17 @@ alter table public.encomendas
     alter column numero_encomenda
     set default nextval('public.encomendas_numero_seq');
 
--- Estado de separação (para instalações que já tinham a tabela).
+-- Estado de separação e entrega (para instalações que já tinham a tabela).
 alter table public.encomendas
     add column if not exists estado_separacao text not null default 'Não separado';
 
-do $$
-begin
-    if not exists (
-        select 1
-        from pg_constraint
-        where conname = 'encomendas_estado_separacao_check'
-          and conrelid = 'public.encomendas'::regclass
-    ) then
-        alter table public.encomendas
-            add constraint encomendas_estado_separacao_check
-            check (estado_separacao in ('Não separado', 'A separar', 'Separado'));
-    end if;
-end
-$$;
+-- Atualiza também instalações que já tinham a restrição antiga sem "Entregue".
+alter table public.encomendas
+    drop constraint if exists encomendas_estado_separacao_check;
+
+alter table public.encomendas
+    add constraint encomendas_estado_separacao_check
+    check (estado_separacao in ('Não separado', 'A separar', 'Separado', 'Entregue'));
 
 -- Evita números repetidos.
 create unique index if not exists encomendas_numero_encomenda_key

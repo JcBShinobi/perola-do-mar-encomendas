@@ -17,7 +17,6 @@ from utils import (
     proximo_24_dezembro,
 )
 
-TAMANHO_PAGINA = 20
 
 
 def _filtrar(
@@ -149,12 +148,6 @@ def _abrir_edicao(encomenda: dict) -> None:
 
 def _abrir_apagar(encomenda: dict) -> None:
     st.session_state["encomenda_apagar"] = encomenda
-
-
-def _mostrar_mais() -> None:
-    st.session_state["gestao_limite"] = (
-        st.session_state.get("gestao_limite", TAMANHO_PAGINA) + TAMANHO_PAGINA
-    )
 
 
 def _apagar_definitivamente(ident: int, numero: str) -> None:
@@ -315,7 +308,7 @@ def render() -> None:
     assinatura = (modo, str(dia), pesquisa)
     if st.session_state.get("gestao_assinatura") != assinatura:
         st.session_state["gestao_assinatura"] = assinatura
-        st.session_state["gestao_limite"] = TAMANHO_PAGINA
+        st.session_state["gestao_pagina"] = 1
 
     if not filtradas:
         st.info("Não há encomendas para estes filtros.")
@@ -323,14 +316,8 @@ def render() -> None:
 
     st.caption(f"**{len(filtradas)}** encomenda(s)")
 
-    limite = st.session_state.get("gestao_limite", TAMANHO_PAGINA)
-    for encomenda in filtradas[:limite]:
+    pagina_itens, pagina, total_paginas = ui.paginar(filtradas, "gestao_pagina")
+    for encomenda in pagina_itens:
         _cartao(encomenda)
 
-    if len(filtradas) > limite:
-        restantes = len(filtradas) - limite
-        st.button(
-            f"Mostrar mais ({restantes} restantes)",
-            key="gestao_mostrar_mais",
-            on_click=_mostrar_mais,
-        )
+    ui.navegacao_paginas("gestao_pagina", pagina, total_paginas)

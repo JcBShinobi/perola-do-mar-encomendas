@@ -4,6 +4,7 @@ from __future__ import annotations
 import streamlit as st
 
 CHAVE_ASSINATURA = "_assinatura_encomendas"
+TAMANHO_PAGINA = 25
 
 _CSS = """
 <style>
@@ -100,6 +101,7 @@ _CSS = """
     .b-nao-separado { background: #f1e7dc; color: #6b4a3b; }
     .b-a-separar   { background: #fff1c9; color: #7a5a00; }
     .b-separado    { background: #d7f2e0; color: #155c36; }
+    .b-entregue    { background: #e4e9ff; color: #29458b; }
 
     /* Contador de cada fila de separação */
     .fila-contador {
@@ -497,6 +499,7 @@ def badge_separacao(estado: str | None) -> str:
         "Não separado": "b-nao-separado",
         "A separar": "b-a-separar",
         "Separado": "b-separado",
+        "Entregue": "b-entregue",
     }
     classe = classes.get(rotulo, "b-nao-separado")
     return f"<span class='badge {classe}'>🧺 {rotulo}</span>"
@@ -515,6 +518,54 @@ def mostrar_flash() -> None:
             st.success(mensagem)
         else:
             st.error(mensagem)
+
+
+def paginar(itens: list[dict], chave: str) -> tuple[list[dict], int, int]:
+    """Corta uma lista em páginas de 25 e mantém a página atual no estado."""
+    total_paginas = max(1, (len(itens) + TAMANHO_PAGINA - 1) // TAMANHO_PAGINA)
+    try:
+        pagina = int(st.session_state.get(chave, 1))
+    except (TypeError, ValueError):
+        pagina = 1
+    pagina = max(1, min(pagina, total_paginas))
+    st.session_state[chave] = pagina
+
+    inicio = (pagina - 1) * TAMANHO_PAGINA
+    return itens[inicio : inicio + TAMANHO_PAGINA], pagina, total_paginas
+
+
+def _mudar_pagina(chave: str, delta: int, total_paginas: int) -> None:
+    try:
+        pagina = int(st.session_state.get(chave, 1))
+    except (TypeError, ValueError):
+        pagina = 1
+    st.session_state[chave] = max(1, min(total_paginas, pagina + delta))
+
+
+def navegacao_paginas(chave: str, pagina: int, total_paginas: int) -> None:
+    """Mostra os controlos Anterior/Seguinte de uma lista paginada."""
+    if total_paginas <= 1:
+        return
+
+    anterior, estado, seguinte = st.columns([1, 1.2, 1])
+    with anterior:
+        st.button(
+            "← Página anterior",
+            key=f"{chave}_anterior",
+            disabled=pagina <= 1,
+            on_click=_mudar_pagina,
+            args=(chave, -1, total_paginas),
+        )
+    with estado:
+        st.caption(f"Página {pagina} de {total_paginas}")
+    with seguinte:
+        st.button(
+            "Página seguinte →",
+            key=f"{chave}_seguinte",
+            disabled=pagina >= total_paginas,
+            on_click=_mudar_pagina,
+            args=(chave, 1, total_paginas),
+        )
 
 
 def marcar_dados_alterados() -> None:

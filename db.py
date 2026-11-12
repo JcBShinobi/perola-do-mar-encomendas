@@ -14,7 +14,7 @@ import streamlit as st
 from supabase import Client, create_client
 
 TABELA = "encomendas"
-ESTADOS_SEPARACAO: tuple[str, ...] = ("Não separado", "A separar", "Separado")
+ESTADOS_SEPARACAO: tuple[str, ...] = ("Não separado", "A separar", "Separado", "Entregue")
 ESTADO_SEPARACAO_INICIAL = ESTADOS_SEPARACAO[0]
 LIMITE_CONSULTA = 1000
 

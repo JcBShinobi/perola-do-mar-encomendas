@@ -15,19 +15,22 @@ telemóvel como no computador do balcão.
   para dar ao cliente, e os campos ficam limpos para a encomenda seguinte.
 - **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
   Todas), pesquisa por número, nome ou telefone, cartões ordenados por
-  data/hora, edição dos dados e eliminação com confirmação.
+  data/hora, paginação em blocos de 25, edição dos dados e eliminação com
+  confirmação.
 - **Enviar mensagem** — no painel de confirmação e nos cartões da consulta,
   abre a app de SMS do telemóvel com uma mensagem pré-preenchida com o número
   da encomenda, a data/hora e o funcionário.
 - **Atualização automática** — a app verifica alterações a cada 5 segundos;
   encomendas criadas, editadas ou mudadas de estado noutro posto aparecem sem
   ser preciso mudar de aba ou clicar em nada.
-- **Encomendas / A separar / Separado** — três filas de trabalho com
-  contador, ordenadas da data mais próxima para a mais distante. **Encomendas**
-  mostra as que ainda estão **Não separado**; ao passarem para **A separar**
-  desaparecem dessa aba. Na aba **A separar**, o botão **Passar a separado**
-  envia a encomenda para **Separado**. Em **A separar** e **Separado** há
-  botões para voltar atrás e corrigir enganos.
+- **Encomendas / A separar / Separado / Entregue** — quatro filas de trabalho
+  com contador, ordenadas da data mais próxima para a mais distante e paginadas
+  em blocos de 25, com botões **Página anterior** e **Página seguinte**.
+  **Encomendas** mostra as que ainda estão **Não separado**; ao passarem para
+  **A separar** desaparecem dessa aba. Na aba **A separar**, o botão **Passar a
+  separado** envia a encomenda para **Separado**. Na aba **Separado**, o botão
+  **Entregue** conclui a entrega. Em **A separar**, **Separado** e **Entregue**
+  há botões para voltar atrás e corrigir enganos.
 
 ## Estrutura
 
@@ -38,7 +41,7 @@ utils.py                    Formatação de datas, horas e números
 ui.py                       CSS responsivo, badges e mensagens
 views/nova_encomenda.py     Registo de encomendas
 views/gestao.py             Filtros, pesquisa e edição
-views/separacao.py          Organização por fase de separação
+views/separacao.py          Organização por fase de separação e entrega
 schema.sql                  Tabela, sequência, índices e permissões
 .streamlit/config.toml      Tema visual
 .streamlit/secrets.toml.example
@@ -98,8 +101,11 @@ Streamlit e a persistência fica no Supabase.
 - O telefone e o funcionário são obrigatórios no registo de novas encomendas.
 - O estado de separação começa em **Não separado**. A mudança para
   **A separar** faz-se na aba **Encomendas**; a passagem para **Separado**
-  faz-se na aba **A separar**. As abas **A separar** e **Separado** permitem
+  faz-se na aba **A separar**; a conclusão faz-se com **Entregue** na aba
+  **Separado**. As abas **A separar**, **Separado** e **Entregue** permitem
   voltar atrás sem apagar a encomenda.
+- As listas de encomendas mostram 25 registos por página; use os botões de
+  navegação no fim da lista para percorrer as restantes páginas.
 - Na aba **Consulta e gestão** o estado de separação aparece apenas como selo
   informativo; a alteração faz-se nas abas de organização.
 - A eliminação de uma encomenda é permanente e exige confirmação no ecrã.

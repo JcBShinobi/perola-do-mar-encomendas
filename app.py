@@ -16,7 +16,7 @@ O script completo, incluindo permissões, está em `schema.sql`.
         estado_encomenda text not null default 'Pendente'
             check (estado_encomenda in ('Pendente', 'Em Produção', 'Pronta', 'Entregue')),
         estado_separacao text not null default 'Não separado'
-            check (estado_separacao in ('Não separado', 'A separar', 'Separado')),
+            check (estado_separacao in ('Não separado', 'A separar', 'Separado', 'Entregue')),
         observacoes text,
         funcionario text,
         created_at timestamp with time zone not null default now()
@@ -183,6 +183,7 @@ def main() -> None:
         aba_encomendas,
         aba_a_separar,
         aba_separado,
+        aba_entregue,
     ) = st.tabs(
         [
             "🎄 Nova encomenda",
@@ -190,6 +191,7 @@ def main() -> None:
             "📦 Encomendas",
             "🧺 A separar",
             "✅ Separado",
+            "🚚 Entregue",
         ],
         default="🎄 Nova encomenda",
         key="abas_principais",
@@ -205,6 +207,8 @@ def main() -> None:
         separacao.render("a_separar", encomendas_organizacao, erro_organizacao)
     with aba_separado:
         separacao.render("separado", encomendas_organizacao, erro_organizacao)
+    with aba_entregue:
+        separacao.render("entregue", encomendas_organizacao, erro_organizacao)
 
 
 main()
