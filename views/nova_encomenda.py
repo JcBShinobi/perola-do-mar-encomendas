@@ -141,10 +141,6 @@ def render() -> None:
                 key=f"nc_funcionario_{versao}",
                 placeholder="Ex.: Ana",
             )
-        st.caption(
-            "Produtos e quantidades por área. Preencha apenas as áreas que a "
-            "encomenda inclui; é obrigatório preencher pelo menos uma."
-        )
         col_padaria, col_pastelaria, col_cozinha = st.columns(3)
         with col_padaria:
             padaria = st.text_area(
