@@ -11,6 +11,12 @@ O script completo, incluindo permissões, está em `schema.sql`.
         nome_cliente text not null,
         telefone text,
         produtos text,
+        produtos_padaria text,
+        produtos_pastelaria text,
+        produtos_cozinha text,
+        padaria_pronta boolean not null default false,
+        pastelaria_pronta boolean not null default false,
+        cozinha_pronta boolean not null default false,
         data_levantamento date not null,
         hora_levantamento time,
         estado_encomenda text not null default 'Pendente'
@@ -27,6 +33,9 @@ O script completo, incluindo permissões, está em `schema.sql`.
         for all to anon, authenticated using (true) with check (true);
 
 Configure depois `.streamlit/secrets.toml` com SUPABASE_URL e SUPABASE_KEY.
+
+A app começa num ecrã sem autenticação para escolher o perfil **Geral**
+(gestão completa) ou **Fabrico** (produção por área).
 """
 from __future__ import annotations
 
@@ -38,9 +47,10 @@ import streamlit as st
 
 import db
 import ui
-from views import gestao, nova_encomenda, separacao
+from views import fabrico, gestao, nova_encomenda, separacao
 
 INTERVALO_ATUALIZACAO = "5s"
+PERFIS = ("Geral", "Fabrico")
 
 st.set_page_config(
     page_title="Pérola do Mar · Encomendas de Natal",
@@ -154,27 +164,81 @@ def _vigiar_encomendas() -> None:
         st.rerun(scope="app")
 
 
-def main() -> None:
-    ui.inject_css()
-    _verificar_ligacao()
-    _vigiar_encomendas()
+def _selecionar_perfil(perfil: str) -> None:
+    st.session_state["perfil"] = perfil
 
-    if st.button(
-        " ",
-        key="testar_ligacao",
-        type="tertiary",
-        icon=":material/wifi:",
-        help="Testar ligação ao Supabase",
+
+def _trocar_utilizador() -> None:
+    # O próximo funcionário deve começar sem dados do utilizador anterior.
+    for chave in list(st.session_state):
+        if chave.startswith("nc_"):
+            st.session_state.pop(chave, None)
+
+    for chave in (
+        "perfil",
+        "abas_principais",
+        "abas_fabrico",
+        "encomenda_edicao",
+        "encomenda_apagar",
+        "form_versao",
+        "ultima_encomenda",
+        "fechar_ultima",
+        "gestao_modo_data",
+        "gestao_dia",
+        "gestao_pesquisa",
+        "gestao_assinatura",
+        "gestao_pagina",
+        "mensagens",
     ):
-        try:
-            db.verificar_ligacao()
-            st.toast("Ligação ao Supabase a funcionar.")
-        except db.ErroBaseDados as exc:
-            st.error(str(exc))
+        st.session_state.pop(chave, None)
 
+
+def _barra_perfil(perfil: str) -> None:
+    informacao, trocar = st.columns([4, 1])
+    with informacao:
+        st.caption(f"Perfil: **{perfil}**")
+    with trocar:
+        st.button(
+            "Trocar utilizador",
+            key="trocar_utilizador",
+            type="tertiary",
+            on_click=_trocar_utilizador,
+        )
+
+
+def _ecra_inicial() -> None:
+    """Ecrã sem autenticação para escolher o perfil de trabalho."""
     ui.cabecalho()
-    ui.mostrar_flash()
+    st.markdown(
+        "<div class='perfil-escolha'>"
+        "<h2>Quem está a usar a app?</h2>"
+        "<p>Escolhe o perfil para entrar.</p>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
+    col_geral, col_fabrico = st.columns(2)
+    with col_geral:
+        st.button(
+            "Geral",
+            key="perfil_geral",
+            type="primary",
+            width="stretch",
+            on_click=_selecionar_perfil,
+            args=("Geral",),
+        )
+    with col_fabrico:
+        st.button(
+            "Fabrico",
+            key="perfil_fabrico",
+            type="secondary",
+            width="stretch",
+            on_click=_selecionar_perfil,
+            args=("Fabrico",),
+        )
+
+
+def _vista_geral() -> None:
     encomendas_organizacao, erro_organizacao = separacao.carregar()
 
     (
@@ -209,6 +273,56 @@ def main() -> None:
         separacao.render("separado", encomendas_organizacao, erro_organizacao)
     with aba_entregue:
         separacao.render("entregue", encomendas_organizacao, erro_organizacao)
+
+
+def _vista_fabrico() -> None:
+    encomendas, erro = fabrico.carregar()
+    aba_padaria, aba_pastelaria, aba_cozinha = st.tabs(
+        ["🥖 Padaria", "🧁 Pastelaria", "🍲 Cozinha"],
+        default="🥖 Padaria",
+        key="abas_fabrico",
+        on_change="rerun",
+    )
+    with aba_padaria:
+        fabrico.render("padaria", encomendas, erro)
+    with aba_pastelaria:
+        fabrico.render("pastelaria", encomendas, erro)
+    with aba_cozinha:
+        fabrico.render("cozinha", encomendas, erro)
+
+
+def main() -> None:
+    ui.inject_css()
+
+    perfil = st.session_state.get("perfil")
+    if perfil not in PERFIS:
+        _ecra_inicial()
+        return
+
+    _verificar_ligacao()
+    _vigiar_encomendas()
+
+    if st.button(
+        " ",
+        key="testar_ligacao",
+        type="tertiary",
+        icon=":material/wifi:",
+        help="Testar ligação ao Supabase",
+    ):
+        try:
+            db.verificar_ligacao()
+            st.toast("Ligação ao Supabase a funcionar.")
+        except db.ErroBaseDados as exc:
+            st.error(str(exc))
+
+    ui.cabecalho()
+    _barra_perfil(perfil)
+    ui.mostrar_flash()
+
+    if perfil == "Fabrico":
+        _vista_fabrico()
+    else:
+        _vista_geral()
 
 
 main()

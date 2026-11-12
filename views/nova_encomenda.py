@@ -69,7 +69,9 @@ def _guardar(
     nome: str,
     telefone: str,
     funcionario: str,
-    produtos: str,
+    padaria: str,
+    pastelaria: str,
+    cozinha: str,
     dia: date,
     hora: object,
     observacoes: str,
@@ -81,8 +83,8 @@ def _guardar(
         erros.append("Indique o número de telefone.")
     if not funcionario.strip():
         erros.append("Indique o funcionário.")
-    if not produtos.strip():
-        erros.append("Indique os produtos e as quantidades.")
+    if not any((padaria.strip(), pastelaria.strip(), cozinha.strip())):
+        erros.append("Preencha pelo menos uma área: Padaria, Pastelaria ou Cozinha.")
     if not isinstance(dia, date):
         erros.append("Escolha a data de levantamento.")
     if erros:
@@ -96,7 +98,9 @@ def _guardar(
                 "nome_cliente": nome,
                 "telefone": telefone,
                 "funcionario": funcionario,
-                "produtos": produtos,
+                "produtos_padaria": padaria,
+                "produtos_pastelaria": pastelaria,
+                "produtos_cozinha": cozinha,
                 "data_levantamento": dia,
                 "hora_levantamento": hora,
                 "observacoes": observacoes,
@@ -137,12 +141,32 @@ def render() -> None:
                 key=f"nc_funcionario_{versao}",
                 placeholder="Ex.: Ana",
             )
-        produtos = st.text_area(
-            "Produtos e quantidades *",
-            key=f"nc_produtos_{versao}",
-            height=130,
-            placeholder="Ex.:\n2 bolos-rei tradicionais\n1 pão de ló de chocolate\n12 filhós",
+        st.caption(
+            "Produtos e quantidades por área. Preencha apenas as áreas que a "
+            "encomenda inclui; é obrigatório preencher pelo menos uma."
         )
+        col_padaria, col_pastelaria, col_cozinha = st.columns(3)
+        with col_padaria:
+            padaria = st.text_area(
+                "Padaria",
+                key=f"nc_padaria_{versao}",
+                height=130,
+                placeholder="Ex.:\n2 pães de ló\n12 pães de Deus",
+            )
+        with col_pastelaria:
+            pastelaria = st.text_area(
+                "Pastelaria",
+                key=f"nc_pastelaria_{versao}",
+                height=130,
+                placeholder="Ex.:\n2 bolos-rei tradicionais\n12 filhós",
+            )
+        with col_cozinha:
+            cozinha = st.text_area(
+                "Cozinha",
+                key=f"nc_cozinha_{versao}",
+                height=130,
+                placeholder="Ex.:\n40 rissóis\n20 empadas",
+            )
 
         col_data, col_hora = st.columns(2)
         with col_data:
@@ -175,7 +199,9 @@ def render() -> None:
             nome,
             telefone,
             funcionario,
-            produtos,
+            padaria,
+            pastelaria,
+            cozinha,
             dia,
             hora,
             observacoes,

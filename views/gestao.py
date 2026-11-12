@@ -53,6 +53,42 @@ def _chave_ordem(encomenda: dict) -> tuple[str, str, int]:
     )
 
 
+def _selos(encomenda: dict) -> str:
+    """Estado de separação e selos das categorias já prontas."""
+    selos = ui.badge_separacao(encomenda.get("estado_separacao"))
+    for _, rotulo, campo_produtos, campo_pronto in db.CATEGORIAS_PRODUTOS:
+        if (
+            (encomenda.get(campo_produtos) or "").strip()
+            and bool(encomenda.get(campo_pronto))
+        ):
+            selos += " " + ui.badge_pronto(rotulo)
+    return selos
+
+
+def _mostrar_produtos(encomenda: dict) -> None:
+    """Mostra os produtos por categoria, com fallback para registos antigos."""
+    blocos: list[tuple[str, str]] = []
+    for _, rotulo, campo_produtos, _ in db.CATEGORIAS_PRODUTOS:
+        texto = (encomenda.get(campo_produtos) or "").strip()
+        if texto:
+            blocos.append((rotulo, texto))
+
+    if not blocos:
+        legado = (encomenda.get("produtos") or "").strip()
+        if legado:
+            blocos.append(("Produtos", legado))
+
+    for rotulo, texto in blocos:
+        st.markdown(
+            "<div class='produto-categoria'>"
+            f"<div class='produto-categoria-label'>{html.escape(rotulo)}</div>"
+            "<div class='ordem-produtos'>"
+            + html.escape(texto).replace("\n", "<br>")
+            + "</div></div>",
+            unsafe_allow_html=True,
+        )
+
+
 def _cartao(encomenda: dict) -> None:
     ident = int(encomenda.get("id"))
     numero = formatar_numero(encomenda.get("numero_encomenda"))
@@ -73,19 +109,9 @@ def _cartao(encomenda: dict) -> None:
                 detalhes.append(f"📞 {encomenda['telefone']}")
             st.caption(" · ".join(detalhes))
         with topo_direita:
-            st.markdown(
-                ui.badge_separacao(encomenda.get("estado_separacao")),
-                unsafe_allow_html=True,
-            )
+            st.markdown(_selos(encomenda), unsafe_allow_html=True)
 
-        produtos = (encomenda.get("produtos") or "").strip()
-        if produtos:
-            st.markdown(
-                "<div class='ordem-produtos'>"
-                + html.escape(produtos).replace("\n", "<br>")
-                + "</div>",
-                unsafe_allow_html=True,
-            )
+        _mostrar_produtos(encomenda)
 
         observacoes = (encomenda.get("observacoes") or "").strip()
         if observacoes:
@@ -174,11 +200,29 @@ def _dialogo_editar(encomenda: dict) -> None:
             "Nome do cliente *", value=encomenda.get("nome_cliente") or ""
         )
         telefone = st.text_input("Telefone", value=encomenda.get("telefone") or "")
-        produtos = st.text_area(
-            "Produtos e quantidades *",
-            value=encomenda.get("produtos") or "",
-            height=120,
+        st.caption(
+            "Produtos e quantidades por área. Preencha pelo menos uma das três "
+            "caixas; alterar o texto repõe essa área como por concluir."
         )
+        col_padaria, col_pastelaria, col_cozinha = st.columns(3)
+        with col_padaria:
+            padaria = st.text_area(
+                "Padaria",
+                value=encomenda.get("produtos_padaria") or "",
+                height=120,
+            )
+        with col_pastelaria:
+            pastelaria = st.text_area(
+                "Pastelaria",
+                value=encomenda.get("produtos_pastelaria") or "",
+                height=120,
+            )
+        with col_cozinha:
+            cozinha = st.text_area(
+                "Cozinha",
+                value=encomenda.get("produtos_cozinha") or "",
+                height=120,
+            )
         dia = st.date_input(
             "Data de levantamento *",
             value=_data_do_registo(encomenda),
@@ -198,8 +242,8 @@ def _dialogo_editar(encomenda: dict) -> None:
         erros: list[str] = []
         if not nome.strip():
             erros.append("Indique o nome do cliente.")
-        if not produtos.strip():
-            erros.append("Indique os produtos e as quantidades.")
+        if not any((padaria.strip(), pastelaria.strip(), cozinha.strip())):
+            erros.append("Preencha pelo menos uma área: Padaria, Pastelaria ou Cozinha.")
         if not isinstance(dia, date):
             erros.append("Escolha a data de levantamento.")
         if erros:
@@ -207,18 +251,30 @@ def _dialogo_editar(encomenda: dict) -> None:
                 st.error(erro)
             return
 
+        novos_produtos = {
+            "produtos_padaria": padaria,
+            "produtos_pastelaria": pastelaria,
+            "produtos_cozinha": cozinha,
+        }
+        alteracoes = {
+            "nome_cliente": nome,
+            "telefone": telefone,
+            **novos_produtos,
+            "data_levantamento": dia,
+            "hora_levantamento": hora,
+            "observacoes": observacoes,
+        }
+
+        # Uma categoria cujo texto mudou deixa de estar concluída até ser
+        # novamente confirmada no perfil Fabrico.
+        for _, _, campo_produtos, campo_pronto in db.CATEGORIAS_PRODUTOS:
+            if novos_produtos[campo_produtos].strip() != (
+                encomenda.get(campo_produtos) or ""
+            ).strip():
+                alteracoes[campo_pronto] = False
+
         try:
-            db.atualizar_encomenda(
-                ident,
-                {
-                    "nome_cliente": nome,
-                    "telefone": telefone,
-                    "produtos": produtos,
-                    "data_levantamento": dia,
-                    "hora_levantamento": hora,
-                    "observacoes": observacoes,
-                },
-            )
+            db.atualizar_encomenda(ident, alteracoes)
         except db.ErroBaseDados as exc:
             st.error(f"Não foi possível atualizar a encomenda. {exc}")
             return

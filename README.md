@@ -9,14 +9,26 @@ telemóvel como no computador do balcão.
 
 ## Funcionalidades
 
+- **Perfis Geral e Fabrico** — a app abre num ecrã sem password com dois
+  acessos diretos. **Geral** mantém a gestão completa; **Fabrico** mostra apenas
+  as três áreas de produção. O botão **Trocar utilizador** volta ao ecrã
+  inicial.
 - **Nova encomenda** — formulário com cliente, telefone e funcionário
-  obrigatórios, produtos, data, hora opcional e observações. Ao guardar, o
-  ecrã mostra em grande destaque o **número gerado** (ex.: `#0042`)
-  para dar ao cliente, e os campos ficam limpos para a encomenda seguinte.
+  obrigatórios, três caixas de produtos (**Padaria**, **Pastelaria** e
+  **Cozinha**), data, hora opcional e observações. Pelo menos uma das caixas
+  deve ser preenchida. Ao guardar, o ecrã mostra em grande destaque o
+  **número gerado** (ex.: `#0042`) para dar ao cliente, e os campos ficam
+  limpos para a encomenda seguinte.
 - **Consulta e gestão** — filtros por dia (Hoje, Amanhã, dia à escolha ou
   Todas), pesquisa por número, nome ou telefone, cartões ordenados por
   data/hora, paginação em blocos de 25, edição dos dados e eliminação com
-  confirmação.
+  confirmação. Os cartões mostram os produtos por área e as badges
+  **Padaria pronta**, **Pastelaria pronta** e **Cozinha pronta**, apenas para
+  as áreas preenchidas que já foram concluídas.
+- **Fabrico** — três abas (**Padaria**, **Pastelaria** e **Cozinha**) que
+  filtram as encomendas com conteúdo nessa área. Cada cartão tem a opção
+  **Concluído / Pronto**, que atualiza o estado e faz aparecer a badge
+  correspondente na consulta do perfil Geral.
 - **Enviar mensagem** — no painel de confirmação e nos cartões da consulta,
   abre a app de SMS do telemóvel com uma mensagem pré-preenchida com o número
   da encomenda, a data/hora e o funcionário.
@@ -35,12 +47,13 @@ telemóvel como no computador do balcão.
 ## Estrutura
 
 ```
-app.py                      Ponto de entrada (ligação, cabeçalho, abas)
+app.py                      Ponto de entrada (perfis, ligação, cabeçalho, abas)
 db.py                       Acesso ao Supabase e tradução de erros
 utils.py                    Formatação de datas, horas e números
 ui.py                       CSS responsivo, badges e mensagens
 views/nova_encomenda.py     Registo de encomendas
-views/gestao.py             Filtros, pesquisa e edição
+views/gestao.py             Filtros, pesquisa, edição e badges de fabrico
+views/fabrico.py            Vista de fabrico por área, com conclusão
 views/separacao.py          Organização por fase de separação e entrega
 schema.sql                  Tabela, sequência, índices e permissões
 .streamlit/config.toml      Tema visual
@@ -98,7 +111,11 @@ Streamlit e a persistência fica no Supabase.
   números repetidos mesmo com vários postos a registar ao mesmo tempo.
 - A hora de levantamento é opcional; sem hora, a encomenda aparece no fim do
   dia na listagem.
-- O telefone e o funcionário são obrigatórios no registo de novas encomendas.
+- O telefone e o funcionário são obrigatórios no registo de novas
+  encomendas. Os produtos são opcionais por área, mas pelo menos uma das
+  caixas **Padaria**, **Pastelaria** ou **Cozinha** tem de estar preenchida.
+- Alterar o texto de uma área na edição repõe essa área como por concluir; é
+  necessário voltar a marcá-la como pronta no perfil **Fabrico**.
 - O estado de separação começa em **Não separado**. A mudança para
   **A separar** faz-se na aba **Encomendas**; a passagem para **Separado**
   faz-se na aba **A separar**; a conclusão faz-se com **Entregue** na aba

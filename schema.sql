@@ -14,6 +14,12 @@ create table if not exists public.encomendas (
     nome_cliente text not null,
     telefone text,
     produtos text,
+    produtos_padaria text,
+    produtos_pastelaria text,
+    produtos_cozinha text,
+    padaria_pronta boolean not null default false,
+    pastelaria_pronta boolean not null default false,
+    cozinha_pronta boolean not null default false,
     data_levantamento date not null,
     hora_levantamento time,
     estado_encomenda text not null default 'Pendente'
@@ -33,6 +39,54 @@ alter table public.encomendas
 -- Estado de separação e entrega (para instalações que já tinham a tabela).
 alter table public.encomendas
     add column if not exists estado_separacao text not null default 'Não separado';
+
+-- Categorias de fabrico e respetivos estados de pronto.
+alter table public.encomendas
+    add column if not exists produtos_padaria text,
+    add column if not exists produtos_pastelaria text,
+    add column if not exists produtos_cozinha text,
+    add column if not exists padaria_pronta boolean not null default false,
+    add column if not exists pastelaria_pronta boolean not null default false,
+    add column if not exists cozinha_pronta boolean not null default false;
+
+-- Migração suave dos produtos antigos para uma categoria preenchida.
+update public.encomendas
+set produtos_pastelaria = produtos
+where coalesce(btrim(produtos_padaria), '') = ''
+  and coalesce(btrim(produtos_pastelaria), '') = ''
+  and coalesce(btrim(produtos_cozinha), '') = ''
+  and coalesce(btrim(produtos), '') <> ''
+  and (
+      lower(produtos) like '%bolo%'
+      or lower(produtos) like '%bolinho%'
+      or lower(produtos) like '%pastel%'
+      or lower(produtos) like '%tarte%'
+      or lower(produtos) like '%queque%'
+      or lower(produtos) like '%croissant%'
+      or lower(produtos) like '%filhó%'
+      or lower(produtos) like '%sonho%'
+  );
+
+update public.encomendas
+set produtos_cozinha = produtos
+where coalesce(btrim(produtos_padaria), '') = ''
+  and coalesce(btrim(produtos_pastelaria), '') = ''
+  and coalesce(btrim(produtos_cozinha), '') = ''
+  and coalesce(btrim(produtos), '') <> ''
+  and (
+      lower(produtos) like '%salgado%'
+      or lower(produtos) like '%rissol%'
+      or lower(produtos) like '%empada%'
+      or lower(produtos) like '%croquete%'
+      or lower(produtos) like '%quiche%'
+  );
+
+update public.encomendas
+set produtos_padaria = produtos
+where coalesce(btrim(produtos_padaria), '') = ''
+  and coalesce(btrim(produtos_pastelaria), '') = ''
+  and coalesce(btrim(produtos_cozinha), '') = ''
+  and coalesce(btrim(produtos), '') <> '';
 
 -- Atualiza também instalações que já tinham a restrição antiga sem "Entregue".
 alter table public.encomendas

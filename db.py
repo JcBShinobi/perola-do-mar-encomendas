@@ -18,6 +18,13 @@ ESTADOS_SEPARACAO: tuple[str, ...] = ("Não separado", "A separar", "Separado", 
 ESTADO_SEPARACAO_INICIAL = ESTADOS_SEPARACAO[0]
 LIMITE_CONSULTA = 1000
 
+# (chave, rótulo, coluna dos produtos, coluna do estado pronto)
+CATEGORIAS_PRODUTOS: tuple[tuple[str, str, str, str], ...] = (
+    ("padaria", "Padaria", "produtos_padaria", "padaria_pronta"),
+    ("pastelaria", "Pastelaria", "produtos_pastelaria", "pastelaria_pronta"),
+    ("cozinha", "Cozinha", "produtos_cozinha", "cozinha_pronta"),
+)
+
 # Usada apenas se o PostgREST não expuser xmin (coluna interna do PostgreSQL).
 _CAMPOS_ASSINATURA = (
     "id",
@@ -25,6 +32,12 @@ _CAMPOS_ASSINATURA = (
     "nome_cliente",
     "telefone",
     "produtos",
+    "produtos_padaria",
+    "produtos_pastelaria",
+    "produtos_cozinha",
+    "padaria_pronta",
+    "pastelaria_pronta",
+    "cozinha_pronta",
     "data_levantamento",
     "hora_levantamento",
     "estado_encomenda",
@@ -139,13 +152,34 @@ def verificar_ligacao() -> None:
         raise ErroBaseDados(_traduzir(exc)) from exc
 
 
+def _recolher_produtos(dados: dict[str, Any]) -> tuple[dict[str, str], str]:
+    """Normaliza as três categorias e cria o resumo legado do campo produtos."""
+    valores: dict[str, str] = {}
+    for _, _, campo, _ in CATEGORIAS_PRODUTOS:
+        texto = (dados.get(campo) or "").strip()
+        if texto:
+            valores[campo] = texto
+
+    if not valores:
+        raise ErroBaseDados(
+            "Indique pelo menos uma área com produtos: Padaria, Pastelaria ou Cozinha."
+        )
+
+    resumo = "\n".join(
+        f"{rotulo}: {valores[campo]}"
+        for _, rotulo, campo, _ in CATEGORIAS_PRODUTOS
+        if campo in valores
+    )
+    return valores, resumo
+
+
 def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
     """Insere uma encomenda e devolve o registo completo (com o nº gerado)."""
     nome = (dados.get("nome_cliente") or "").strip()
     telefone = (dados.get("telefone") or "").strip()
     funcionario = (dados.get("funcionario") or "").strip()
-    produtos = (dados.get("produtos") or "").strip()
     dia = dados.get("data_levantamento")
+    valores_produtos, resumo_produtos = _recolher_produtos(dados)
 
     if not nome:
         raise ErroBaseDados("O nome do cliente é obrigatório.")
@@ -153,8 +187,6 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
         raise ErroBaseDados("O número de telefone é obrigatório.")
     if not funcionario:
         raise ErroBaseDados("O funcionário é obrigatório.")
-    if not produtos:
-        raise ErroBaseDados("Indique os produtos da encomenda.")
     if not isinstance(dia, date):
         raise ErroBaseDados("A data de levantamento é obrigatória.")
 
@@ -164,7 +196,8 @@ def criar_encomenda(dados: dict[str, Any]) -> dict[str, Any]:
         "nome_cliente": nome,
         "telefone": telefone,
         "funcionario": funcionario,
-        "produtos": produtos,
+        "produtos": resumo_produtos,
+        **valores_produtos,
         "data_levantamento": dia.isoformat(),
         "hora_levantamento": hora.strftime("%H:%M:%S") if isinstance(hora, time) else None,
         "observacoes": (dados.get("observacoes") or "").strip() or None,
@@ -269,31 +302,52 @@ def atualizar_estado_separacao(encomenda_id: int, estado: str) -> None:
 def atualizar_encomenda(encomenda_id: int, dados: dict[str, Any]) -> None:
     """Atualiza os dados editáveis de uma encomenda existente."""
     nome = (dados.get("nome_cliente") or "").strip()
-    produtos = (dados.get("produtos") or "").strip()
     dia = dados.get("data_levantamento")
+    valores_produtos, resumo_produtos = _recolher_produtos(dados)
 
     if not nome:
         raise ErroBaseDados("O nome do cliente é obrigatório.")
-    if not produtos:
-        raise ErroBaseDados("Indique os produtos da encomenda.")
     if not isinstance(dia, date):
         raise ErroBaseDados("A data de levantamento é obrigatória.")
 
     hora = dados.get("hora_levantamento")
+    alteracoes: dict[str, Any] = {
+        "nome_cliente": nome,
+        "telefone": (dados.get("telefone") or "").strip() or None,
+        "produtos": resumo_produtos,
+        **valores_produtos,
+        "data_levantamento": dia.isoformat(),
+        "hora_levantamento": hora.strftime("%H:%M:%S")
+        if isinstance(hora, time)
+        else None,
+        "observacoes": (dados.get("observacoes") or "").strip() or None,
+    }
 
-    _atualizar(
-        encomenda_id,
-        {
-            "nome_cliente": nome,
-            "telefone": (dados.get("telefone") or "").strip() or None,
-            "produtos": produtos,
-            "data_levantamento": dia.isoformat(),
-            "hora_levantamento": hora.strftime("%H:%M:%S")
-            if isinstance(hora, time)
-            else None,
-            "observacoes": (dados.get("observacoes") or "").strip() or None,
-        },
-    )
+    # Inclui também as categorias deixadas em branco, para que uma edição
+    # consiga limpar produtos que já não pertencem à encomenda.
+    for _, _, campo, _ in CATEGORIAS_PRODUTOS:
+        alteracoes[campo] = valores_produtos.get(campo)
+
+    # A UI envia estes campos quando o texto de uma categoria mudou, para
+    # não manter um selo de "pronto" antigo sobre um produto diferente.
+    for _, _, _, campo_pronto in CATEGORIAS_PRODUTOS:
+        if campo_pronto in dados:
+            alteracoes[campo_pronto] = bool(dados[campo_pronto])
+
+    _atualizar(encomenda_id, alteracoes)
+
+
+def atualizar_pronto_categoria(
+    encomenda_id: int,
+    categoria: str,
+    pronto: bool,
+) -> None:
+    """Marca ou desmarca uma categoria específica como pronta."""
+    for chave, _, _, campo_pronto in CATEGORIAS_PRODUTOS:
+        if chave == categoria:
+            _atualizar(encomenda_id, {campo_pronto: bool(pronto)})
+            return
+    raise ErroBaseDados("Categoria de fabrico inválida.")
 
 
 def apagar_encomenda(encomenda_id: int) -> None:

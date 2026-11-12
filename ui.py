@@ -102,6 +102,31 @@ _CSS = """
     .b-a-separar   { background: #fff1c9; color: #7a5a00; }
     .b-separado    { background: #d7f2e0; color: #155c36; }
     .b-entregue    { background: #e4e9ff; color: #29458b; }
+    .b-pronto      { background: #d7f2e0; color: #155c36; }
+
+    .produto-categoria { margin: .3rem 0; }
+    .produto-categoria-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--vinho);
+        margin: 0 0 .12rem .1rem;
+    }
+    .perfil-escolha {
+        background: #fff8ef;
+        border: 1px solid #efdfd0;
+        border-radius: 18px;
+        padding: 1.4rem 1.2rem;
+        text-align: center;
+        margin: .4rem 0 1rem;
+    }
+    .perfil-escolha h2 {
+        color: var(--vinho);
+        margin: .15rem 0 .35rem;
+        font-size: 1.5rem;
+    }
+    .perfil-escolha p { color: #6b4a3b; margin: 0; }
 
     /* Contador de cada fila de separação */
     .fila-contador {
@@ -503,6 +528,11 @@ def badge_separacao(estado: str | None) -> str:
     }
     classe = classes.get(rotulo, "b-nao-separado")
     return f"<span class='badge {classe}'>🧺 {rotulo}</span>"
+
+
+def badge_pronto(rotulo: str) -> str:
+    """Selo de uma categoria de fabrico concluída."""
+    return f"<span class='badge b-pronto'>✓ {rotulo} pronta</span>"
 
 
 def flash(tipo: str, mensagem: str) -> None:
