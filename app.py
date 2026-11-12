@@ -193,49 +193,57 @@ def _trocar_utilizador() -> None:
         st.session_state.pop(chave, None)
 
 
-def _barra_perfil(perfil: str) -> None:
-    informacao, trocar = st.columns([4, 1])
-    with informacao:
-        st.caption(f"Perfil: **{perfil}**")
-    with trocar:
+def _acoes_topo() -> None:
+    """Troca de utilizador e teste de ligação, discretos no topo."""
+    with st.container(
+        horizontal=True,
+        horizontal_alignment="left",
+        gap="small",
+    ):
         st.button(
-            "Trocar utilizador",
+            " ",
             key="trocar_utilizador",
             type="tertiary",
+            icon=":material/switch_account:",
+            help="Trocar utilizador",
             on_click=_trocar_utilizador,
         )
+        if st.button(
+            " ",
+            key="testar_ligacao",
+            type="tertiary",
+            icon=":material/wifi:",
+            help="Testar ligação ao Supabase",
+        ):
+            try:
+                db.verificar_ligacao()
+                st.toast("Ligação ao Supabase a funcionar.")
+            except db.ErroBaseDados as exc:
+                st.error(str(exc))
 
 
 def _ecra_inicial() -> None:
     """Ecrã sem autenticação para escolher o perfil de trabalho."""
-    ui.cabecalho()
-    st.markdown(
-        "<div class='perfil-escolha'>"
-        "<h2>Quem está a usar a app?</h2>"
-        "<p>Escolhe o perfil para entrar.</p>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-    col_geral, col_fabrico = st.columns(2)
-    with col_geral:
-        st.button(
-            "Geral",
-            key="perfil_geral",
-            type="primary",
-            width="stretch",
-            on_click=_selecionar_perfil,
-            args=("Geral",),
-        )
-    with col_fabrico:
-        st.button(
-            "Fabrico",
-            key="perfil_fabrico",
-            type="secondary",
-            width="stretch",
-            on_click=_selecionar_perfil,
-            args=("Fabrico",),
-        )
+    with st.container(key="ecra_inicial"):
+        with st.container(
+            horizontal=True,
+            horizontal_alignment="center",
+            gap="large",
+        ):
+            st.button(
+                "Geral",
+                key="perfil_geral",
+                type="primary",
+                on_click=_selecionar_perfil,
+                args=("Geral",),
+            )
+            st.button(
+                "Fabrico",
+                key="perfil_fabrico",
+                type="secondary",
+                on_click=_selecionar_perfil,
+                args=("Fabrico",),
+            )
 
 
 def _vista_geral() -> None:
@@ -301,22 +309,7 @@ def main() -> None:
 
     _verificar_ligacao()
     _vigiar_encomendas()
-
-    if st.button(
-        " ",
-        key="testar_ligacao",
-        type="tertiary",
-        icon=":material/wifi:",
-        help="Testar ligação ao Supabase",
-    ):
-        try:
-            db.verificar_ligacao()
-            st.toast("Ligação ao Supabase a funcionar.")
-        except db.ErroBaseDados as exc:
-            st.error(str(exc))
-
-    ui.cabecalho()
-    _barra_perfil(perfil)
+    _acoes_topo()
     ui.mostrar_flash()
 
     if perfil == "Fabrico":

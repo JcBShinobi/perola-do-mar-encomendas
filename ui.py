@@ -24,40 +24,6 @@ _CSS = """
     header[data-testid="stHeader"] { display: none !important; }
     #MainMenu, footer { display: none !important; }
 
-    /* Cabeçalho da aplicação */
-    .app-header {
-        position: relative;
-        overflow: hidden;
-        background: radial-gradient(circle at 12% 15%, #a8243a 0%, #7a1327 55%, #550b19 100%);
-        color: var(--creme);
-        border-radius: 18px;
-        padding: 1.35rem 1.6rem;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(255, 255, 255, .14);
-        box-shadow: 0 10px 26px rgba(85, 11, 25, .25);
-    }
-    .app-header .marca {
-        font-size: .74rem;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        opacity: .85;
-    }
-    .app-header h1 {
-        font-size: 2rem;
-        line-height: 1.15;
-        margin: .25rem 0 .2rem;
-        color: var(--creme);
-        padding: 0;
-    }
-    .app-header .pinheiro {
-        position: absolute;
-        right: 1.1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 3.4rem;
-        opacity: .9;
-    }
-
     /* Cartões das encomendas */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 16px;
@@ -113,21 +79,6 @@ _CSS = """
         color: var(--vinho);
         margin: 0 0 .12rem .1rem;
     }
-    .perfil-escolha {
-        background: #fff8ef;
-        border: 1px solid #efdfd0;
-        border-radius: 18px;
-        padding: 1.4rem 1.2rem;
-        text-align: center;
-        margin: .4rem 0 1rem;
-    }
-    .perfil-escolha h2 {
-        color: var(--vinho);
-        margin: .15rem 0 .35rem;
-        font-size: 1.5rem;
-    }
-    .perfil-escolha p { color: #6b4a3b; margin: 0; }
-
     /* Contador de cada fila de separação */
     .fila-contador {
         display: flex;
@@ -391,16 +342,22 @@ _CSS = """
         [class*="st-key-apagar_"] button:hover { transform: none; }
     }
 
-    /* Ligação ao Supabase: ícone pequeno e discreto */
+    /* Ações discretas do topo: trocar utilizador e ligação ao Supabase */
+    [class*="st-key-trocar_utilizador"] button,
     [class*="st-key-testar_ligacao"] button {
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
         color: #8a6a5a !important;
-        min-height: 1.6rem !important;
-        padding: .1rem .35rem !important;
-        opacity: .6;
+        min-height: 2rem !important;
+        padding: .18rem .4rem !important;
+        opacity: .7;
     }
+    [class*="st-key-trocar_utilizador"] button [data-testid="stIconMaterial"],
+    [class*="st-key-testar_ligacao"] button [data-testid="stIconMaterial"] {
+        font-size: 1.2rem !important;
+    }
+    [class*="st-key-trocar_utilizador"] button:hover,
     [class*="st-key-testar_ligacao"] button:hover {
         opacity: 1;
         background: #f7ece2 !important;
@@ -413,9 +370,6 @@ _CSS = """
             padding-left: .8rem;
             padding-right: .8rem;
         }
-        .app-header { padding: 1rem 1.1rem; border-radius: 14px; }
-        .app-header h1 { font-size: 1.5rem; }
-        .app-header .pinheiro { font-size: 2.4rem; right: .7rem; opacity: .55; }
         .nd-valor { font-size: 3.1rem; }
 
         /* Alvos de toque confortáveis no telemóvel */
@@ -429,6 +383,7 @@ _CSS = """
         div[data-testid="stElementContainer"]:has(> .stFormSubmitButton) {
             width: 100% !important;
         }
+        [class*="st-key-trocar_utilizador"],
         [class*="st-key-testar_ligacao"] { width: auto !important; }
 
         .stButton > button,
@@ -464,6 +419,7 @@ _CSS = """
             padding: .5rem .9rem !important;
             font-size: .8rem !important;
         }
+        [class*="st-key-trocar_utilizador"] button,
         [class*="st-key-testar_ligacao"] button {
             width: auto !important;
             min-height: 2.6rem !important;
@@ -494,6 +450,58 @@ _CSS = """
             min-width: 100% !important;
         }
     }
+
+    /* Ecrã inicial: botões centrados no ecrã */
+    [class*="st-key-ecra_inicial"] {
+        min-height: calc(100vh - 5.6rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Ecrã inicial: dois botões grandes, quadrados e centrados */
+    [class*="st-key-perfil_geral"],
+    [class*="st-key-perfil_fabrico"] {
+        width: 180px !important;
+        max-width: 180px !important;
+    }
+    [class*="st-key-perfil_geral"] button,
+    [class*="st-key-perfil_fabrico"] button {
+        width: 180px !important;
+        min-height: 120px !important;
+        padding: .8rem 1rem !important;
+        border-radius: 8px !important;
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        letter-spacing: .015em;
+        touch-action: manipulation;
+    }
+    [class*="st-key-perfil_geral"] button p,
+    [class*="st-key-perfil_fabrico"] button p {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+    }
+
+    @media (max-width: 700px) {
+        [class*="st-key-ecra_inicial"] {
+            min-height: calc(100dvh - 5rem);
+        }
+        [class*="st-key-perfil_geral"],
+        [class*="st-key-perfil_fabrico"] {
+            width: 150px !important;
+            max-width: 150px !important;
+        }
+        [class*="st-key-perfil_geral"] button,
+        [class*="st-key-perfil_fabrico"] button {
+            width: 150px !important;
+            min-height: 105px !important;
+            font-size: 1.15rem !important;
+        }
+        [class*="st-key-perfil_geral"] button p,
+        [class*="st-key-perfil_fabrico"] button p {
+            font-size: 1.15rem !important;
+        }
+    }
 </style>
 """
 
@@ -501,20 +509,6 @@ _CSS = """
 def inject_css() -> None:
     """Aplica o tema visual (Natal suave, legível em telemóvel e balcão)."""
     st.markdown(_CSS, unsafe_allow_html=True)
-
-
-def cabecalho() -> None:
-    """Cabeçalho com a marca da padaria."""
-    st.markdown(
-        """
-        <div class="app-header">
-            <div class="marca">Pérola do Mar · Padaria &amp; Cafetaria</div>
-            <h1>Encomendas de Natal 🎄</h1>
-            <div class="pinheiro">🎄</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def badge_separacao(estado: str | None) -> str:

@@ -50,11 +50,6 @@ def _alternar_pronto(
         return
 
     ui.marcar_dados_alterados()
-    rotulo, _, _ = _categoria(categoria)
-    if pronto:
-        ui.flash("sucesso", f"{rotulo} marcada como pronta.")
-    else:
-        ui.flash("sucesso", f"{rotulo} novamente por concluir.")
 
 
 def _cartao(

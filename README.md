@@ -11,7 +11,7 @@ telemóvel como no computador do balcão.
 
 - **Perfis Geral e Fabrico** — a app abre num ecrã sem password com dois
   acessos diretos. **Geral** mantém a gestão completa; **Fabrico** mostra apenas
-  as três áreas de produção. O botão **Trocar utilizador** volta ao ecrã
+  as três áreas de produção. O ícone de troca de utilizador volta ao ecrã
   inicial.
 - **Nova encomenda** — formulário com cliente, telefone e funcionário
   obrigatórios, três caixas de produtos (**Padaria**, **Pastelaria** e
